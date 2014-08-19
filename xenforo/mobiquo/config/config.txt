@@ -1,4 +1,4 @@
-version = xf10_2.3.0
+version = xf10_2.3.5
 api_level = 3
 
 mark_forum = 1

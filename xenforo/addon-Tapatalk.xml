@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="tapatalk" title="Tapatalk" version_string="1.1.3" version_id="79" url="" install_callback_class="Tapatalk_Installer" install_callback_method="install" uninstall_callback_class="Tapatalk_Installer" uninstall_callback_method="uninstall">
+<addon addon_id="tapatalk" title="Tapatalk" version_string="1.1.3" version_id="80" url="" install_callback_class="Tapatalk_Installer" install_callback_method="install" uninstall_callback_class="Tapatalk_Installer" uninstall_callback_method="uninstall">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>
@@ -166,28 +166,28 @@
     <interface_groups/>
   </permissions>
   <phrases>
-    <phrase title="byo_favorites" version_id="16" version_string="1.1.3"><![CDATA[[On BYO]Managing account details]]></phrase>
-    <phrase title="byo_get_conversation" version_id="16" version_string="1.1.3"><![CDATA[[On BYO]Engaged in conversation]]></phrase>
-    <phrase title="byo_get_conversations" version_id="16" version_string="1.1.3"><![CDATA[[On BYO]Engaged in conversation]]></phrase>
-    <phrase title="byo_get_forum" version_id="16" version_string="1.1.3"><![CDATA[[On BYO]Viewing forum list]]></phrase>
-    <phrase title="byo_get_forum_list" version_id="16" version_string="1.1.3"><![CDATA[[On BYO]Viewing forum list]]></phrase>
-    <phrase title="byo_get_online_users" version_id="16" version_string="1.1.3"><![CDATA[[On BYO]Viewing list of online members]]></phrase>
-    <phrase title="byo_get_thread" version_id="16" version_string="1.1.3"><![CDATA[[On BYO]Viewing thread]]></phrase>
-    <phrase title="byo_get_topic" version_id="16" version_string="1.1.3"><![CDATA[[On BYO]Viewing forum]]></phrase>
-    <phrase title="byo_get_user_info" version_id="16" version_string="1.1.3"><![CDATA[[On BYO]Viewing member profile ]]></phrase>
-    <phrase title="byo_latest" version_id="16" version_string="1.1.3"><![CDATA[[On BYO]Viewing latest content]]></phrase>
-    <phrase title="byo_link" version_id="16" version_string="1.1.3"><![CDATA[<a href="http://tapatalk.com">]]></phrase>
-    <phrase title="byo_search" version_id="16" version_string="1.1.3"><![CDATA[[On BYO]Searching]]></phrase>
-    <phrase title="dark_first_last_inverted" version_id="2" version_string="1.1.3"><![CDATA[First and last indexes are inverted!]]></phrase>
-    <phrase title="dark_forum_subscriptions_not_supported" version_id="2" version_string="1.1.3"><![CDATA[Forum subscriptions are not currently supported by XenForo.]]></phrase>
-    <phrase title="dark_in_tapatalk" version_id="13" version_string="1.1.3"><![CDATA[On Tapatalk]]></phrase>
-    <phrase title="dark_passworded_forums_not_supported" version_id="2" version_string="1.1.3"><![CDATA[Password protected forums are not currently supported by XenForo]]></phrase>
-    <phrase title="dark_thread_is_redirect" version_id="2" version_string="1.1.3"><![CDATA[Thread is a redirect]]></phrase>
-    <phrase title="on_byo" version_id="16" version_string="1.1.3"><![CDATA[On Tapatalk(*)]]></phrase>
-    <phrase title="on_tapatalk" version_id="16" version_string="1.1.3"><![CDATA[On Tapatalk]]></phrase>
-    <phrase title="option_ads_disabled_for_group" version_id="27" version_string="1.1.3"><![CDATA[Disable Ads for Group]]></phrase>
-    <phrase title="option_ads_disabled_for_group_explain" version_id="27" version_string="1.1.3"><![CDATA[This option will prevent Tapatalk from displaying advertisements. Users in the selected groups will not be served ads when using the Tapatalk app.]]></phrase>
-    <phrase title="option_advanced_delete" version_id="9" version_string="1.1.3"><![CDATA[Hard Delete]]></phrase>
+    <phrase title="byo_favorites" version_id="17" version_string="1.1.3"><![CDATA[[On BYO]Managing account details]]></phrase>
+    <phrase title="byo_get_conversation" version_id="17" version_string="1.1.3"><![CDATA[[On BYO]Engaged in conversation]]></phrase>
+    <phrase title="byo_get_conversations" version_id="17" version_string="1.1.3"><![CDATA[[On BYO]Engaged in conversation]]></phrase>
+    <phrase title="byo_get_forum" version_id="17" version_string="1.1.3"><![CDATA[[On BYO]Viewing forum list]]></phrase>
+    <phrase title="byo_get_forum_list" version_id="17" version_string="1.1.3"><![CDATA[[On BYO]Viewing forum list]]></phrase>
+    <phrase title="byo_get_online_users" version_id="17" version_string="1.1.3"><![CDATA[[On BYO]Viewing list of online members]]></phrase>
+    <phrase title="byo_get_thread" version_id="17" version_string="1.1.3"><![CDATA[[On BYO]Viewing thread]]></phrase>
+    <phrase title="byo_get_topic" version_id="17" version_string="1.1.3"><![CDATA[[On BYO]Viewing forum]]></phrase>
+    <phrase title="byo_get_user_info" version_id="17" version_string="1.1.3"><![CDATA[[On BYO]Viewing member profile ]]></phrase>
+    <phrase title="byo_latest" version_id="17" version_string="1.1.3"><![CDATA[[On BYO]Viewing latest content]]></phrase>
+    <phrase title="byo_link" version_id="17" version_string="1.1.3"><![CDATA[<a href="http://tapatalk.com">]]></phrase>
+    <phrase title="byo_search" version_id="17" version_string="1.1.3"><![CDATA[[On BYO]Searching]]></phrase>
+    <phrase title="dark_first_last_inverted" version_id="3" version_string="1.1.3"><![CDATA[First and last indexes are inverted!]]></phrase>
+    <phrase title="dark_forum_subscriptions_not_supported" version_id="3" version_string="1.1.3"><![CDATA[Forum subscriptions are not currently supported by XenForo.]]></phrase>
+    <phrase title="dark_in_tapatalk" version_id="14" version_string="1.1.3"><![CDATA[On Tapatalk]]></phrase>
+    <phrase title="dark_passworded_forums_not_supported" version_id="3" version_string="1.1.3"><![CDATA[Password protected forums are not currently supported by XenForo]]></phrase>
+    <phrase title="dark_thread_is_redirect" version_id="3" version_string="1.1.3"><![CDATA[Thread is a redirect]]></phrase>
+    <phrase title="on_byo" version_id="17" version_string="1.1.3"><![CDATA[On Tapatalk(*)]]></phrase>
+    <phrase title="on_tapatalk" version_id="17" version_string="1.1.3"><![CDATA[On Tapatalk]]></phrase>
+    <phrase title="option_ads_disabled_for_group" version_id="28" version_string="1.1.3"><![CDATA[Disable Ads for Group]]></phrase>
+    <phrase title="option_ads_disabled_for_group_explain" version_id="28" version_string="1.1.3"><![CDATA[This option will prevent Tapatalk from displaying advertisements. Users in the selected groups will not be served ads when using the Tapatalk app.]]></phrase>
+    <phrase title="option_advanced_delete" version_id="10" version_string="1.1.3"><![CDATA[Hard Delete]]></phrase>
     <phrase title="option_advanced_delete_explain" version_id="9" version_string="1.1.3"><![CDATA[Enable/Disable "Hard Delete" moderation using Tapatalk]]></phrase>
     <phrase title="option_custom_tapatalkdetect" version_id="12" version_string="1.1.3"><![CDATA[custom_tapatalkdetect]]></phrase>
     <phrase title="option_custom_tapatalkdetect_explain" version_id="12" version_string="1.1.3"><![CDATA[test]]></phrase>

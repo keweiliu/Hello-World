@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<addon addon_id="tapatalk" title="Tapatalk" version_string="1.1.5" version_id="91" url="" install_callback_class="Tapatalk_Installer" install_callback_method="install" uninstall_callback_class="Tapatalk_Installer" uninstall_callback_method="uninstall">
+<addon addon_id="tapatalk" title="Tapatalk" version_string="1414137515
+" version_id="91" url="" install_callback_class="Tapatalk_Installer" install_callback_method="install" uninstall_callback_class="Tapatalk_Installer" uninstall_callback_method="uninstall">
   <admin_navigation/>
   <admin_permissions/>
   <admin_style_properties/>

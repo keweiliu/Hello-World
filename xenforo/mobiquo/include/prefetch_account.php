@@ -16,6 +16,29 @@ function prefetch_account_func($xmlrpc_params)
     
     $options = XenForo_Application::get('options');
     $custom_register_fields = array();
+
+    if ($options->get('registrationSetup', 'requireDob')){
+        $custom_register_fields[] = new xmlrpcval(array(
+            'name'        => new xmlrpcval('birthday','base64'),
+            'description' => new xmlrpcval('Birthday','base64'),
+            'key'         => new xmlrpcval('birthday','string'),
+            'type'        => new xmlrpcval(input,'string'),
+            'options'     => new xmlrpcval('','base64'),
+            'format'      => new xmlrpcval('nnnn-nn-nn','string'),
+        ),'struct');
+    }
+
+    if ($options->get('registrationSetup', 'requireLocation')){
+            $custom_register_fields[] = new xmlrpcval(array(
+            'name'        => new xmlrpcval('location','base64'),
+            'description' => new xmlrpcval('location','base64'),
+            'key'         => new xmlrpcval('location','string'),
+            'type'        => new xmlrpcval('input','string'),
+            'options'     => new xmlrpcval('','base64'),
+            'format'      => new xmlrpcval('','string'),
+        ),'struct');
+    }
+
     $fields = $fieldModel->prepareUserFields($fieldModel->getUserFields());
     
     foreach ( $fields as $key => $value)

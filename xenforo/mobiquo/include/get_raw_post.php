@@ -24,7 +24,7 @@ function get_raw_post_func($xmlrpc_params)
 	$posts=$postModel->getAndMergeAttachmentsIntoPosts(array($post["post_id"]=>$post));
 	$post=$posts[$post["post_id"]];
 	$attachment_list = array();
-	if(!empty($post['attachments'])){
+	if(isset($post['attachments']) && !empty($post['attachments'])){
 		foreach($post['attachments'] as $attachment) {
 
 			$type = $attachment['extension'];
@@ -40,7 +40,7 @@ function get_raw_post_func($xmlrpc_params)
 					break;
 			}
 			$thumbnail = '';
-			if(!empty($attachment['thumbnailUrl']))
+			if(isset($attachment['thumbnailUrl']) && !empty($attachment['thumbnailUrl']))
 			$thumbnail = XenForo_Link::convertUriToAbsoluteUri($attachment['thumbnailUrl'], true);
 
 			$attachment_list[] = new xmlrpcval(array(

@@ -29,7 +29,9 @@ function reply_conversation_func($xmlrpc_params)
     }
     
     $visitor = XenForo_Visitor::getInstance();
-    
+
+    $input['message'] = XenForo_Helper_String::autoLinkBbCode($input['message']);
+
     $messageDw = XenForo_DataWriter::create('XenForo_DataWriter_ConversationMessage');
     $messageDw->setExtraData(XenForo_DataWriter_ConversationMessage::DATA_MESSAGE_SENDER, $visitor->toArray());
     $messageDw->setExtraData(XenForo_DataWriter_ConversationMessage::DATA_ATTACHMENT_HASH, $input['group_id']);

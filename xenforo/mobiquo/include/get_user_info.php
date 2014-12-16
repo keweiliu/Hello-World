@@ -20,6 +20,7 @@ function get_user_info_func($xmlrpc_params)
     $userModel = $bridge->getUserModel();
     $userProfileModel = $bridge->getUserProfileModel();
     $sessionModel = $bridge->getSessionModel();
+    $warningModel = $bridge->getWarningModel();
 
     $custom_fields_list = array();
 
@@ -60,20 +61,20 @@ function get_user_info_func($xmlrpc_params)
     $birthday = $userProfileModel->getUserBirthdayDetails($user);
     $age = $userProfileModel->getUserAge($user);
 
-    if(!empty($user['custom_title']))
+    if(isset($user['custom_title']) && !empty($user['custom_title']))
         addCustomField(new XenForo_Phrase('title'), $user['custom_title'], $custom_fields_list);
-    if(!empty($user['location']))
+    if(isset($user['location']) && !empty($user['location']))
         addCustomField(new XenForo_Phrase('location'), $user['location'], $custom_fields_list);
-    if(!empty($user['occupation']))
+    if(isset($user['occupation']) && !empty($user['occupation']))
         addCustomField(new XenForo_Phrase('occupation'), $user['occupation'], $custom_fields_list);
-    if(!empty($user['homepage']))
+    if(isset($user['homepage']) && !empty($user['homepage']))
         addCustomField(new XenForo_Phrase('home_page'), $user['homepage'], $custom_fields_list);
-    if(!empty($user['gender']))
+    if(isset($user['gender']) && !empty($user['gender']))
         addCustomField(new XenForo_Phrase('gender'), new XenForo_Phrase($user['gender']), $custom_fields_list);
 
     if(!empty($birthday))
         addCustomField(new XenForo_Phrase('birthday'), XenForo_Template_Helper_Core::date($birthday['timeStamp'], $birthday['format']).
-        (!empty($birthday['age']) ? (" (".new XenForo_Phrase('age').": ".$birthday['age'].")") : ""), $custom_fields_list);
+        (isset($birthday['age']) && !empty($birthday['age']) ? (" (".new XenForo_Phrase('age').": ".$birthday['age'].")") : ""), $custom_fields_list);
     else if(!empty($age))
         addCustomField(new XenForo_Phrase('age'), $age, $custom_fields_list);
 
@@ -116,6 +117,10 @@ function get_user_info_func($xmlrpc_params)
     addCustomField(new XenForo_Phrase('following'), $followingCount, $custom_fields_list);
     addCustomField(new XenForo_Phrase('likes_received'), $user['like_count'], $custom_fields_list);
     addCustomField(new XenForo_Phrase('trophy_points'), $user['trophy_points'], $custom_fields_list);
+    if ($userModel->canViewWarnings())
+    {
+        addCustomField(new XenForo_Phrase('warning_points'), $user['warning_points'], $custom_fields_list);
+    }
 
 
     $sessionActivity = $sessionModel->getSessionActivityRecords(array(
@@ -125,9 +130,9 @@ function get_user_info_func($xmlrpc_params)
     $sessionActivity = reset($sessionActivity);
 
     $activity = new XenForo_Phrase('viewing_forum');
-    if(!empty($sessionActivity['activityDescription'])){
+    if(isset($sessionActivity['activityDescription']) && !empty($sessionActivity['activityDescription'])){
         $activity = $sessionActivity['activityDescription'];
-        if(!empty($sessionActivity['activityItemTitle'])){
+        if(isset($sessionActivity['activityItemTitle']) && !empty($sessionActivity['activityItemTitle'])){
             $activity .= " ".$sessionActivity['activityItemTitle'];
         }
     }

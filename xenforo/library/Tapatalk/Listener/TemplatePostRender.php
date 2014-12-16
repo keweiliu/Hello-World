@@ -8,19 +8,21 @@ class Tapatalk_Listener_TemplatePostRender
             $memberListItems = preg_split('/<li class="primaryContent memberListItem">/', $output);
             if(!empty($memberListItems))
             {
+                $tapatalk_dir_name = XenForo_Application::get('options')->tp_directory;
+                if (empty($tapatalk_dir_name)) $tapatalk_dir_name = 'mobiquo';
                 foreach($memberListItems as $key => $memberItem)
                 {
                 if(preg_match('/\[On Tapatalk\]/', $memberItem))
                     {
                         $memberItem = preg_replace('/\[On Tapatalk\]/', '', $memberItem);
                         $memberItem = preg_replace('/<div class="extra">/', '<div class="extra">
-            <img src="mobiquo/forum_icons/tapatalk-online.png">', $memberItem);
+            <img src="'.$tapatalk_dir_name.'/forum_icons/tapatalk-online.png">', $memberItem);
                     }
                     else if(preg_match('/\[On BYO\]/', $memberItem))
                     {
                         $memberItem = preg_replace('/\[On BYO\]/', '', $memberItem);
                         $memberItem = preg_replace('/<div class="extra">/', '<div class="extra"> 
-            <img src="mobiquo/forum_icons/tapatalk-online.png">', $memberItem);
+            <img src="'.$tapatalk_dir_name.'/forum_icons/tapatalk-online.png">', $memberItem);
                     }
                     if($key == 0)
                         $output = $memberItem;

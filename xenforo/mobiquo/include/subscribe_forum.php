@@ -16,7 +16,7 @@ function subscribe_forum_func($xmlrpc_params)
 
 
     $data = $bridge->_input->filterExternal(array(
-            'node_id' => XenForo_Input::STRING,
+            'node_id' => XenForo_Input::UINT,
     ), $params);
 
     $forumId = $data['node_id'];

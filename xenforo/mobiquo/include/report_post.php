@@ -11,7 +11,7 @@ function report_post_func($xmlrpc_params)
 	$visitor = XenForo_Visitor::getInstance();
 
 	//fake report for guest to fit apple's requirement
-	if(empty($visitor['user_id']))
+	if(!isset($visitor['user_id']) || empty($visitor['user_id']))
 		return xmlresptrue();
 
 	$data = $bridge->_input->filterExternal(array(

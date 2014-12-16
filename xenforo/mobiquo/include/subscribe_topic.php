@@ -8,7 +8,7 @@ function subscribe_topic_func($xmlrpc_params)
     $bridge = Tapatalk_Bridge::getInstance();
     
     $data = $bridge->_input->filterExternal(array(
-            'topic_id' => XenForo_Input::STRING,
+            'topic_id' => XenForo_Input::UINT,
             'subscribe_mode' => XenForo_Input::UINT,
     ), $params);
 

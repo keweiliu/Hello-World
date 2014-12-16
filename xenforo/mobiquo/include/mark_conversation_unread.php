@@ -9,7 +9,7 @@ function mark_conversation_unread_func($xmlrpc_params)
     $params = php_xmlrpc_decode($xmlrpc_params);
 
     $data = $bridge->_input->filterExternal(array(
-            'conv_id' => XenForo_Input::STRING,
+            'conv_id' => XenForo_Input::UINT,
     ), $params);
     $conversationId = $data['conv_id'];
 

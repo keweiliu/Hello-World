@@ -17,7 +17,7 @@ function get_config_func()
         'push'           => new xmlrpcval('1', 'string'),
     );
     if(!$is_board_active)
-        $config_list['result_text'] = new xmlrpcval(empty($options->boardInactiveMessage)? 'Sorry, we\'re currently unavailable. Please check back later.' : $options->boardInactiveMessage, 'base64');
+        $config_list['result_text'] = new xmlrpcval(!isset($options->boardInactiveMessage) || empty($options->boardInactiveMessage) ? 'Sorry, we\'re currently unavailable. Please check back later.' : $options->boardInactiveMessage, 'base64');
     $visitor = XenForo_Visitor::getInstance();
     $config_list['guest_search'] =  new xmlrpcval($visitor->canSearch(), 'string');
     if(isset($options->tp_push_key) && !empty($options->tp_push_key))
@@ -66,10 +66,10 @@ function get_config_func()
     }
     $config_list['is_open'] = new xmlrpcval(($is_board_active || XenForo_Visitor::getInstance()->get('is_admin')) && $is_open && $tapatalk_addon['active'], 'boolean');
     
-    $ads_Dis_group = !empty($options->ads_disabled_for_group) ? implode(',', $options->ads_disabled_for_group) : "";
+    $ads_Dis_group = isset($options->ads_disabled_for_group) && !empty($options->ads_disabled_for_group) ? implode(',', $options->ads_disabled_for_group) : "";
     $config_list['ads_disabled_group'] = new xmlrpcval($ads_Dis_group, 'string');
     $config_list['guest_group_id'] = new xmlrpcval(XenForo_Model_User::$defaultGuestGroupId, 'string');
-    
+    $config_list['login_type'] = new xmlrpcval('both', 'string');
     $response = new xmlrpcval($config_list, 'struct');
     
     return new xmlrpcresp($response);

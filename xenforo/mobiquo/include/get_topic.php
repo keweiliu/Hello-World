@@ -39,8 +39,16 @@ function get_topic_func($xmlrpc_params)
                         '{name}' => $user['username'] !== '' ? $user['username'] : new XenForo_Phrase('guest'),
                         '{user_id}' => $user['user_id'],
                     );
+
+                    $noticeModel = XenForo_Model::create("XenForo_Model_Notice");
+                    $dismissedNoticeIds = $noticeModel->getDismissedNoticeIdsForUser($visitor['user_id']);
+
                     foreach (XenForo_Application::get('notices') AS $noticeId => $notice)
                     {
+                        if (in_array($noticeId, $dismissedNoticeIds)){
+                            continue;
+                        }
+
                         if (XenForo_Helper_Criteria::userMatchesCriteria($notice['user_criteria'], true, $user)
                             && pageMatchesCriteria($notice['page_criteria'],$node, $nodeModel))
                         {
@@ -66,6 +74,7 @@ function get_topic_func($xmlrpc_params)
                 'topic_title'       => new xmlrpcval($notice['title'], 'base64'),
                 'prefix_id'			=> new xmlrpcval('', 'string'),
                 'prefix'            => new xmlrpcval('', 'base64'),
+                'topic_author_id'   => new xmlrpcval(isset($ann_author['user_id']) ? $ann_author['user_id'] : 1, 'string'),
                 'topic_author_name' => new xmlrpcval(isset($ann_author['username']) ? $ann_author['username'] : 'admin', 'base64'),
                 'user_type'         => new xmlrpcval('', 'base64'),
                 'can_subscribe'     => new xmlrpcval(false, 'boolean'),
@@ -215,6 +224,7 @@ function get_topic_func($xmlrpc_params)
             'topic_title'       => new xmlrpcval($thread['title'], 'base64'),
         	'prefix_id'         => new xmlrpcval($thread['prefix_id'],'string'),
             'prefix'            => new xmlrpcval(get_prefix_name($thread['prefix_id']), 'base64'),
+            'topic_author_id'   => new xmlrpcval($thread['user_id'], 'string'),
             'topic_author_name' => new xmlrpcval($thread['username'], 'base64'),
             'user_type'         => new xmlrpcval(get_usertype_by_item('', $thread['display_style_group_id'], $thread['is_banned']), 'base64'),
             'can_subscribe'     => new xmlrpcval(true, 'boolean'), // implied by view permissions
@@ -295,7 +305,7 @@ function pageMatchesCriteria($criteria, $node, $nodeModel)
             case 'nodes':
                 {
 
-                    if (empty($data['node_ids']))
+                    if (!isset($data['node_ids']) || empty($data['node_ids']))
                     {
                         return false; // no node ids specified
                     }

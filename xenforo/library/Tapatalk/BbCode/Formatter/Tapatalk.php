@@ -23,7 +23,8 @@ class Tapatalk_BbCode_Formatter_Tapatalk extends XenForo_BbCode_Formatter_Base
 		'attach' => array('$this', 'handleTagAttach'),
 		'media' => array('$this', 'handleTagMedia'),
 		'list' => array('$this', 'handleTagList'),
-		'spoiler' => array('$this', 'handleTagSpoiler')
+		'spoiler' => array('$this', 'handleTagSpoiler'),
+        'color' => array('$this', 'handleTagColor'),
 	);
 	
 	protected $_ttMediaSites = array(
@@ -396,4 +397,9 @@ class Tapatalk_BbCode_Formatter_Tapatalk extends XenForo_BbCode_Formatter_Base
 		$output .= "\n";
 		return $output;
 	}
+
+    public function handleTagColor($tag, $rendererStates){
+        $content = $this->renderSubTree($tag['children'], $rendererStates);
+        return '<font color="'.$tag['option'].'">'.$content.'</font>';
+    }
 }

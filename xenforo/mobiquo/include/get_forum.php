@@ -10,9 +10,11 @@ if (XenForo_Template_Helper_Core::styleProperty('forumIconReadPath'))
 }
 else
 {
-    $icon_read =   FORUM_ROOT.'mobiquo/forum_icons/forum-read.png';
-    $icon_unread = FORUM_ROOT.'mobiquo/forum_icons/forum-unread.png';
-    $icon_link =   FORUM_ROOT.'mobiquo/forum_icons/link.png';
+    $tapatalk_dir_name = XenForo_Application::get('options')->tp_directory;
+    if (empty($tapatalk_dir_name)) $tapatalk_dir_name = 'mobiquo';
+    $icon_read =   FORUM_ROOT.$tapatalk_dir_name.'/forum_icons/forum-read.png';
+    $icon_unread = FORUM_ROOT.$tapatalk_dir_name.'/forum_icons/forum-unread.png';
+    $icon_link =   FORUM_ROOT.$tapatalk_dir_name.'/forum_icons/link.png';
 }
 
 
@@ -24,7 +26,7 @@ function get_forum_func($xmlrpc_params)
 
     $data = $bridge->_input->filterExternal(array(
             'description' => XenForo_Input::UINT,
-            'forumid' => XenForo_Input::STRING,
+            'forumid' => XenForo_Input::UINT,
     ), $params);
     $nodes = $nodeModel->getAllNodes(false, true);
     $nodePermissions = $nodeModel->getNodePermissionsForPermissionCombination();
@@ -100,8 +102,8 @@ function processNode($id, $node, &$nodes)
         'description'   => new xmlrpcval($node['description'], 'base64'),
         'parent_id'     => new xmlrpcval($node['parent_node_id'], 'string'),
         'logo_url'      => new xmlrpcval($icon, 'string'),
-        'new_post'      => new xmlrpcval(!empty($node['hasNew']), 'boolean'),
-        'unread_count'  => new xmlrpcval(!empty($node['hasNew']) ? $node['hasNew'] : 0, 'int'),
+        'new_post'      => new xmlrpcval(isset($node['hasNew']) && !empty($node['hasNew']), 'boolean'),
+        'unread_count'  => new xmlrpcval(isset($node['hasNew']) && !empty($node['hasNew']) ? $node['hasNew'] : 0, 'int'),
         'is_protected'  => new xmlrpcval(false, 'boolean'),
         'url'           => new xmlrpcval($url, 'string'),
         'sub_only'      => new xmlrpcval($node['node_type_id'] == 'Category', 'boolean'),

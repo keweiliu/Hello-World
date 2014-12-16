@@ -3,7 +3,7 @@
 error_reporting(E_ALL & ~E_NOTICE);
 define('IN_MOBIQUO', 1);
 
-define('SCRIPT_ROOT', empty($_SERVER['SCRIPT_FILENAME']) ? '../' : dirname(dirname($_SERVER['SCRIPT_FILENAME'])).'/');
+define('SCRIPT_ROOT', (!isset($_SERVER['SCRIPT_FILENAME']) || empty($_SERVER['SCRIPT_FILENAME'])) ? '../' : dirname(dirname($_SERVER['SCRIPT_FILENAME'])).'/');
 if (DIRECTORY_SEPARATOR == '/')
     define('FORUM_ROOT', 'http://'.$_SERVER['HTTP_HOST'].dirname(dirname($_SERVER['SCRIPT_NAME'])).'/');
 else
@@ -22,7 +22,7 @@ $errorReporting = ini_get('error_reporting') &~ 8096;
 @ini_set('error_reporting', $errorReporting);
 // Hide errors from normal display - will be cleanly output via shutdown function.
 // (No need to turn off errors when not debugging like in normal Tapatalk plugins - all are passed through cleanly via XMLRPC result_text.)
-ini_set('display_errors', 0);
+@ini_set('display_errors', 0);
 //
 // Revert XenForo's error handler also
 restore_error_handler();

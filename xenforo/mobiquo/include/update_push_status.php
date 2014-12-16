@@ -34,7 +34,7 @@ function update_push_status_func($xmlrpc_params)
             $allow_update = !empty($userId);
         }
     }
-    else if(!empty($visitor['user_id']))
+    else if(isset($visitor['user_id']) && !empty($visitor['user_id']))
     {
         $allow_update = true;
     }
@@ -43,7 +43,7 @@ function update_push_status_func($xmlrpc_params)
     {
         $push_data = array(
             'url'  => $options->boardUrl,
-            'key'  => (!empty($options->tp_push_key) ? $options->tp_push_key : ''),
+            'key'  => (isset($options->tp_push_key) && !empty($options->tp_push_key) ? $options->tp_push_key : ''),
             'uid'  => $user_id['user_id'],
             'data' => base64_encode(serialize($data['pushparam'])),
         );

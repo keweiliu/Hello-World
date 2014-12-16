@@ -13,7 +13,7 @@ function new_topic_func($xmlrpc_params)
 			'forum_id' => XenForo_Input::UINT,
 			'subject' => XenForo_Input::STRING,
 			'message' => XenForo_Input::STRING,
-			'prefix_id' => XenForo_Input::STRING,
+			'prefix_id' => XenForo_Input::UINT,
 			'attachment_id_array' => XenForo_Input::ARRAY_SIMPLE,
 			'group_id' => XenForo_Input::STRING,
 	), $params);

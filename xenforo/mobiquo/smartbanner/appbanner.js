@@ -1,3 +1,12 @@
+//add document ready function
+var add_app_event = function(fn){
+    if(document.addEventListener){
+        document.addEventListener("DOMContentLoaded",function(){
+            document.removeEventListener("DOMContentLoaded",arguments.callee,false);
+            fn();
+        },false);
+    }
+}
 
 // ---- params check ----
 if (typeof(app_api_key)     == "undefined") var app_api_key = '';
@@ -48,6 +57,7 @@ _tsq.push(["trackPage"]);
         var x = document.getElementsByTagName("script")[0];
         x.parentNode.insertBefore(s, x);
     }
+    
     if (window.attachEvent)
         window.attachEvent("onload", z);
     else
@@ -66,7 +76,7 @@ if (navigator.userAgent.match(/iPhone|iPod|iPad|Silk|Android|IEMobile|Windows Ph
 {
     current_timestamp = Math.round(+new Date()/1000);
     hide_until = typeof(localStorage.hide_until) === "undefined" ? 0 : localStorage.hide_until;
-    
+    mobiquoextension = typeof (mobiquo_extension) === "undefined" ? "php" : mobiquo_extension;
     try {
         if (current_timestamp > hide_until)
         {
@@ -74,7 +84,7 @@ if (navigator.userAgent.match(/iPhone|iPod|iPad|Silk|Android|IEMobile|Windows Ph
             localStorage.hide_until = current_timestamp+(86400*30);
             
             // redirect to welcome page with referer
-            app_welcome_url = app_board_url+'/'+tapatalk_dir_name+'/mobiquo.php?welcome=1'
+            app_welcome_url = app_board_url + '/' + tapatalk_dir_name + '/mobiquo.' + mobiquoextension + '?welcome=1'
                               +'&referer='+encodeURIComponent(app_referer)
                               +'&board_url='+encodeURIComponent(app_board_url)
                               +'&code='+encodeURIComponent(app_api_key)
@@ -134,8 +144,8 @@ if (is_byo)
 else
     var app_install_url = 'http://tapstream.tapatalk.com/l43a-1/?__tsid=$TSID&__tsid_override=1&referer='+encodeURIComponent(app_deep_link);
 
-// for those forum system which can not add js in html body
-addWindowOnload(tapatalkDetectAfterLoad)
+// for those forum system which can not add js in html body  
+add_app_event(tapatalkDetectAfterLoad)
 
 var bannerLoaded = false
 
@@ -227,16 +237,13 @@ function tapatalkDetect(afterLoad)
     bodyItem = document.body
     appBanner = document.createElement("div")
     appBanner.id = "mobile_banner"
-    appBanner.className = "mobile_banner banner_format_handset banner_device_android banner_theme_light mobile_banner_animate"
+    appBanner.className = "mobile_banner banner_theme_light mobile_banner_animate"
     appBanner.innerHTML = 
                     '<div class="mobile_banner_inner">'+
-                        '<span class="mobile_banner_icon"></span>'+
-                        '<div class="mobile_banner_body">'+
-                            '<h3 class="mobile_banner_heading">'+app_banner_message+'</h3>'+
-                        '</div>'+
+                        '<div class="mobile_banner_heading">'+app_banner_message+'</div>'+
                         '<div class="mobile_banner_controls">'+
-                            '<a class="mobile_banner_button chrome white mobile_banner_open" href="'+banner_location_url+'" id="mobile_banner_open">'+'Open in app'+'</a>'+
-                            '<a class="mobile_banner_button chrome blue mobile_banner_install" href="'+app_install_url+'" id="mobile_banner_install">'+'Install'+'</a>'+
+                            '<a class="mobile_banner_button mobile_banner_open" href="'+banner_location_url+'" id="mobile_banner_open">'+'Open in app'+'</a>'+
+                            '<a class="mobile_banner_button mobile_banner_install" href="'+app_install_url+'" id="mobile_banner_install">'+'Install'+'</a>'+
                             '<a class="mobile_banner_close" href="javascript:closeBanner()" id="mobile_banner_close">x</a>'+
                         '</div>'+
                     '</div>'
@@ -256,21 +263,9 @@ function tapatalkDetect(afterLoad)
     if (typeof(afterLoad)!=='undefined'&&afterLoad)
         resetBannerTop()
     else
-        addWindowOnload(resetBannerTop)
+        add_app_event(resetBannerTop)
 }
 
-function addWindowOnload(func)
-{
-    if (typeof window.onload != 'function') {
-        window.onload = func;
-    } else {
-        var oldonload = window.onload;
-        window.onload = function() {
-            oldonload();
-            func();
-        }
-    }
-}
 
 function resetBannerTop()
 {

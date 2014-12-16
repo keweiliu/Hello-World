@@ -13,7 +13,7 @@ function mark_conversation_read_func($xmlrpc_params)
         'conv_ids' => XenForo_Input::STRING,
     ), $param);
     
-    if(empty($visitor['user_id']))
+    if(!isset($visitor['user_id']) || empty($visitor['user_id']))
         return xmlresperror(new XenForo_Phrase('requested_member_not_found'));
     
     if(!empty($data['conv_ids']))

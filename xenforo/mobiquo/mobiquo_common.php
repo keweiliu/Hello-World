@@ -4,137 +4,111 @@ defined('IN_MOBIQUO') or exit;
 
 function get_error($error_key, $params = array())
 {
-	$error_message = (string)new XenForo_Phrase($error_key, $params);
-	
-	$r = new xmlrpcresp(
-			new xmlrpcval(array(
-				'result'        => new xmlrpcval(false, 'boolean'),
-				'result_text'   => new xmlrpcval($error_message, 'base64'),
-			),'struct')
-	);
-	echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".$r->serialize('UTF-8');
-	exit;
+    $error_message = (string)new XenForo_Phrase($error_key, $params);
+
+    $r = new xmlrpcresp(
+    new xmlrpcval(array(
+        'result'        => new xmlrpcval(false, 'boolean'),
+        'result_text'   => new xmlrpcval($error_message, 'base64'),
+    ),'struct')
+    );
+    echo "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n".$r->serialize('UTF-8');
+    exit;
 }
 
 function get_method_name()
 {
-	$ver = phpversion();
-	if ($ver[0] >= 5) {
-		$data = @file_get_contents('php://input');
-	} else {
-		$data = isset($GLOBALS['HTTP_RAW_POST_DATA']) ? $GLOBALS['HTTP_RAW_POST_DATA'] : '';
-	}
-	$parsers = php_xmlrpc_decode_xml($data);
-	if(is_object($parsers))
-		return trim($parsers->methodname);
-	else
-	{
-		if(!empty($_POST['method_name']))
-			return $_POST['method_name'];
-		else
-			return null;
-	}
+    $ver = phpversion();
+    if ($ver[0] >= 5) {
+        $data = @file_get_contents('php://input');
+    } else {
+        $data = isset($GLOBALS['HTTP_RAW_POST_DATA']) ? $GLOBALS['HTTP_RAW_POST_DATA'] : '';
+    }
+    $parsers = php_xmlrpc_decode_xml($data);
+    if(is_object($parsers))
+    return trim($parsers->methodname);
+    else
+    {
+        if(isset($_POST['method_name']) && !empty($_POST['method_name'])){
+            return $_POST['method_name'];
+        }else{
+            return null;
+        }
+    }
 }
 
-function get_mobiquo_config() 
+function get_mobiquo_config()
 {
-	$config_file = './config/config.txt';
-	file_exists($config_file) or exit('config.txt does not exists');
-	
-	if(function_exists('file_get_contents')){
-		$tmp = @file_get_contents($config_file);
-	}else{
-		$handle = fopen($config_file, 'rb');
-		$tmp = fread($handle, filesize($config_file));
-		fclose($handle);
-	}
-	
-	// remove comments by /*xxxx*/ or //xxxx
-	$tmp = preg_replace('/\/\*.*?\*\/|\/\/.*?(\n)/si','$1',$tmp);
-	$tmpData = preg_split("/\s*\n/", $tmp, -1, PREG_SPLIT_NO_EMPTY);
-	
-	$mobiquo_config = array();
-	foreach ($tmpData as $d){
-		list($key, $value) = preg_split("/=/", $d, 2); // value string may also have '='
-		$key = trim($key);
-		$value = trim($value);
-		if ($key == 'hide_forum_id')
-		{
-			$value = preg_split('/\s*,\s*/', $value, -1, PREG_SPLIT_NO_EMPTY);
-			count($value) and $mobiquo_config[$key] = $value;
-		}
-		else
-		{
-			strlen($value) and $mobiquo_config[$key] = $value;
-		}
-	}
-	
-	$options = XenForo_Application::get('options');
-	$mobiquo_config['guest_okay'] = $options->guest_okay;
-	$mobiquo_config['reg_url'] = isset($options->reg_url) && !empty($options->reg_url) ? $options->reg_url: 'index.php?register';
-	$mobiquo_config['advanced_delete'] = $options->advanced_delete;
-	
-	return $mobiquo_config;
+
+    $mobiquo_config = $mobiquo_config = TTConfig::get_config();
+
+
+    $options = XenForo_Application::get('options');
+    $mobiquo_config['guest_okay'] = $options->guest_okay;
+    $mobiquo_config['reg_url'] = isset($options->reg_url) && !empty($options->reg_url) ? $options->reg_url: 'index.php?register';
+    $mobiquo_config['advanced_delete'] = $options->advanced_delete;
+
+    return $mobiquo_config;
 }
 
 function xmlresptrue()
 {
-	$result = new xmlrpcval(array(
-		'result'        => new xmlrpcval(true, 'boolean'),
-		'result_text'   => new xmlrpcval('', 'base64')
-	), 'struct');
-	
-	return new xmlrpcresp($result);
+    $result = new xmlrpcval(array(
+        'result'        => new xmlrpcval(true, 'boolean'),
+        'result_text'   => new xmlrpcval('', 'base64')
+    ), 'struct');
+
+    return new xmlrpcresp($result);
 }
 
 /**
-* For use via preg_replace_callback; makes urls absolute before wrapping them in [url]
-*/
+ * For use via preg_replace_callback; makes urls absolute before wrapping them in [url]
+ */
 function parse_local_link($input){
-	return "[URL=".XenForo_Link::convertUriToAbsoluteUri($input[1], true)."]{$input[2]}[/URL]";
+    return "[URL=".XenForo_Link::convertUriToAbsoluteUri($input[1], true)."]{$input[2]}[/URL]";
 }
 
 function xmlresperror($error_message)
 {
-	$result = new xmlrpcval(array(
-		'result'        => new xmlrpcval(false, 'boolean'),
-		'result_text'   => new xmlrpcval($error_message, 'base64')
-	), 'struct');
+    $result = new xmlrpcval(array(
+        'result'        => new xmlrpcval(false, 'boolean'),
+        'result_text'   => new xmlrpcval($error_message, 'base64')
+    ), 'struct');
 
-	return new xmlrpcresp($result);
+    return new xmlrpcresp($result);
 }
 
 function get_forum_icon_url($fid)
 {
-	$logo_url = '';
-	if (file_exists("./forum_icons/$fid.png"))
-	{
-		$logo_url = FORUM_ROOT."mobiquo/forum_icons/$fid.png";
-	}
-	else if (file_exists("./forum_icons/$fid.jpg"))
-	{
-		$logo_url = FORUM_ROOT."mobiquo/forum_icons/$fid.jpg";
-	}
-	else if (file_exists("./forum_icons/default.png"))
-	{
-		$logo_url = FORUM_ROOT."mobiquo/forum_icons/default.png";
-	}
-	
-	return $logo_url;
+    $logo_url = '';
+    if (file_exists("./forum_icons/$fid.png"))
+    {
+        $logo_url = FORUM_ROOT."mobiquo/forum_icons/$fid.png";
+    }
+    else if (file_exists("./forum_icons/$fid.jpg"))
+    {
+        $logo_url = FORUM_ROOT."mobiquo/forum_icons/$fid.jpg";
+    }
+    else if (file_exists("./forum_icons/default.png"))
+    {
+        $logo_url = FORUM_ROOT."mobiquo/forum_icons/default.png";
+    }
+
+    return $logo_url;
 }
 
 function tp_get_forum_icon($id, $type = 'forum', $lock = false, $new = false)
 {
     if (!in_array($type, array('link', 'category', 'forum')))
-        $type = 'forum';
-   
+    $type = 'forum';
+
     $icon_name = $type;
     if ($type != 'link')
     {
         if ($lock) $icon_name .= '_lock';
         if ($new) $icon_name .= '_new';
     }
-   
+
     $icon_map = array(
         'category_lock_new' => array('category_lock', 'category_new', 'lock_new', 'category', 'lock', 'new'),
         'category_lock'     => array('category', 'lock'),
@@ -149,37 +123,37 @@ function tp_get_forum_icon($id, $type = 'forum', $lock = false, $new = false)
         'new'               => array(),
         'link'              => array(),
     );
-   
-    $final = empty($icon_map[$icon_name]);
-   
+
+    $final = !isset($icon_map[$icon_name]) || empty($icon_map[$icon_name]);
+
     if ($url = tp_get_forum_icon_by_name($id, $icon_name, $final))
-        return $url;
-   
+    return $url;
+
     foreach ($icon_map[$icon_name] as $sub_name)
     {
-        $final = empty($icon_map[$sub_name]);
+        $final = !isset($icon_map[$sub_name]) || empty($icon_map[$sub_name]);
         if ($url = tp_get_forum_icon_by_name($id, $sub_name, $final))
-            return $url;
+        return $url;
     }
-   
+
     return '';
 }
 
 function tp_get_forum_icon_by_name($id, $name, $final)
 {
-	global $boarddir, $boardurl;
-	
+    global $boarddir, $boardurl;
+
     $tapatalk_forum_icon_dir = './forum_icons/';
     $tapatalk_forum_icon_url = FORUM_ROOT.'mobiquo/forum_icons/';
-   
+
     $filename_array = array(
-        $name.'_'.$id.'.png',
-        $name.'_'.$id.'.jpg',
-        $id.'.png', $id.'.jpg',
-        $name.'.png',
-        $name.'.jpg',
+    $name.'_'.$id.'.png',
+    $name.'_'.$id.'.jpg',
+    $id.'.png', $id.'.jpg',
+    $name.'.png',
+    $name.'.jpg',
     );
-   
+
     foreach ($filename_array as $filename)
     {
         if (file_exists($tapatalk_forum_icon_dir.$filename))
@@ -187,14 +161,14 @@ function tp_get_forum_icon_by_name($id, $name, $final)
             return $tapatalk_forum_icon_url.$filename;
         }
     }
-   
+
     if ($final) {
         if (file_exists($tapatalk_forum_icon_dir.'default.png'))
-            return $tapatalk_forum_icon_url.'default.png';
+        return $tapatalk_forum_icon_url.'default.png';
         else if (file_exists($tapatalk_forum_icon_dir.'default.jpg'))
-            return $tapatalk_forum_icon_url.'default.jpg';
+        return $tapatalk_forum_icon_url.'default.jpg';
     }
-   
+
     return '';
 }
 
@@ -205,134 +179,160 @@ function mobiquo_iso8601_encode($timestamp)
 
 function cutstr($string, $length)
 {
-	if(strlen($string) <= $length) {
-		return $string;
-	}
+    if(strlen($string) <= $length) {
+        return $string;
+    }
 
-	$string = str_replace(array('&amp;', '&quot;', '&lt;', '&gt;'), array('&', '"', '<', '>'), $string);
+    $string = str_replace(array('&amp;', '&quot;', '&lt;', '&gt;'), array('&', '"', '<', '>'), $string);
 
-	$strcut = '';
+    $strcut = '';
 
-	$n = $tn = $noc = 0;
-	while($n < strlen($string)) {
+    $n = $tn = $noc = 0;
+    while($n < strlen($string)) {
 
-		$t = ord($string[$n]);
-		if($t == 9 || $t == 10 || (32 <= $t && $t <= 126)) {
-			$tn = 1; $n++; $noc++;
-		} elseif(194 <= $t && $t <= 223) {
-			$tn = 2; $n += 2; $noc += 2;
-		} elseif(224 <= $t && $t <= 239) {
-			$tn = 3; $n += 3; $noc += 2;
-		} elseif(240 <= $t && $t <= 247) {
-			$tn = 4; $n += 4; $noc += 2;
-		} elseif(248 <= $t && $t <= 251) {
-			$tn = 5; $n += 5; $noc += 2;
-		} elseif($t == 252 || $t == 253) {
-			$tn = 6; $n += 6; $noc += 2;
-		} else {
-			$n++;
-		}
+        $t = ord($string[$n]);
+        if($t == 9 || $t == 10 || (32 <= $t && $t <= 126)) {
+            $tn = 1; $n++; $noc++;
+        } elseif(194 <= $t && $t <= 223) {
+            $tn = 2; $n += 2; $noc += 2;
+        } elseif(224 <= $t && $t <= 239) {
+            $tn = 3; $n += 3; $noc += 2;
+        } elseif(240 <= $t && $t <= 247) {
+            $tn = 4; $n += 4; $noc += 2;
+        } elseif(248 <= $t && $t <= 251) {
+            $tn = 5; $n += 5; $noc += 2;
+        } elseif($t == 252 || $t == 253) {
+            $tn = 6; $n += 6; $noc += 2;
+        } else {
+            $n++;
+        }
 
-		if($noc >= $length) {
-			break;
-		}
+        if($noc >= $length) {
+            break;
+        }
 
-	}
-	if($noc > $length) {
-		$n -= $tn;
-	}
+    }
+    if($noc > $length) {
+        $n -= $tn;
+    }
 
-	$strcut = substr($string, 0, $n);
-	
-	return $strcut;
+    $strcut = wholeWordTrim($string, $n, 0, "");
+
+    return $strcut;
+}
+
+function wholeWordTrim($string, $maxLength, $offset = 0, $elipses = '...')
+{
+    //TODO: this may need a handler for language independence and some form of error correction for bbcode
+
+    if ($offset)
+    {
+        $string = preg_replace('/^\S*\s+/s', '', utf8_substr($string, $offset));
+    }
+
+    $strLength = utf8_strlen($string);
+
+    if ($maxLength > 0 && $strLength > $maxLength)
+    {
+        $string = utf8_substr($string, 0, $maxLength);
+        $string = strrev(preg_replace('/^\S*\s+/s', '', strrev($string))) . $elipses;
+    }
+
+    if ($offset)
+    {
+        $string = $elipses . $string;
+    }
+
+    return $string;
 }
 
 function process_page($start_num, $end)
 {
-	$start = intval($start_num);
-	$end = intval($end);
-	$start = empty($start) ? 0 : max($start, 0);
-	$end = (empty($end) || $end < $start) ? ($start + 19) : max($end, $start);
-	if ($end - $start >= 50) {
-		$end = $start + 49;
-	}
-	$limit = $end - $start + 1;
-	$page = intval($start/$limit) + 1;
-	
-	return array($start, $limit, $page);
+    $start = intval($start_num);
+    $end = intval($end);
+    $start = empty($start) ? 0 : max($start, 0);
+    $end = (empty($end) || $end < $start) ? ($start + 19) : max($end, $start);
+    if ($end - $start >= 50) {
+        $end = $start + 49;
+    }
+    $limit = $end - $start + 1;
+    $page = intval($start/$limit) + 1;
+
+    return array($start, $limit, $page);
 }
 
 // redundant? __toString ;)
 function get_xf_lang($lang_key, $params = array())
 {
-	$phrase = new XenForo_Phrase($lang_key, $params);
-	return $phrase->render();
+    $phrase = new XenForo_Phrase($lang_key, $params);
+    return $phrase->render();
 }
 
 function get_online_status($user_id)
 {
-	$bridge = Tapatalk_Bridge::getInstance();
-	$sessionModel = $bridge->getSessionModel();
-	$userModel = $bridge->getUserModel();
-	
-	$bypassUserPrivacy = $userModel->canBypassUserPrivacy();
-	
-	$conditions = array(
-		'cutOff'            => array('>', $sessionModel->getOnlineStatusTimeout()),
-		'getInvisible'      => $bypassUserPrivacy,
-		'getUnconfirmed'    => $bypassUserPrivacy,
-		'user_id'           => XenForo_Visitor::getUserId(),
-		'forceInclude'      => ($bypassUserPrivacy ? false : XenForo_Visitor::getUserId())
-	);
-	
-	$onlineUsers = $sessionModel->getSessionActivityRecords($conditions);
-	
-	return empty($onlineUsers) ? false : true;
+    $bridge = Tapatalk_Bridge::getInstance();
+    $sessionModel = $bridge->getSessionModel();
+    $userModel = $bridge->getUserModel();
+
+    $bypassUserPrivacy = $userModel->canBypassUserPrivacy();
+
+    $conditions = array(
+        'cutOff'            => array('>', $sessionModel->getOnlineStatusTimeout()),
+        'getInvisible'      => $bypassUserPrivacy,
+        'getUnconfirmed'    => $bypassUserPrivacy,
+        'user_id'           => $user_id,
+        'forceInclude'      => ($bypassUserPrivacy ? false : XenForo_Visitor::getUserId())
+    );
+
+    $onlineUsers = $sessionModel->getSessionActivityRecords($conditions);
+
+    return empty($onlineUsers) ? false : true;
 }
 
 function basic_clean($str)
 {
-	$str = strip_tags($str);
-	$str = trim($str);
-	return html_entity_decode($str, ENT_QUOTES, 'UTF-8');
+    $str = strip_tags($str);
+    $str = trim($str);
+    return html_entity_decode($str, ENT_QUOTES, 'UTF-8');
 }
 
 function get_avatar($user, $size = 'm')
 {
-    if (!empty($user['user_id']) && ((isset($user['gravatar']) && !empty($user['gravatar'])) || !empty($user['avatar_date'])))
-        return XenForo_Link::convertUriToAbsoluteUri(XenForo_Template_Helper_Core::getAvatarUrl($user, $size), true);
-    else
+    if (isset($user['user_id']) && !empty($user['user_id']) && ((isset($user['gravatar']) && !empty($user['gravatar'])) || (isset($user['avatar_date']) && !empty($user['avatar_date'])))){
+        return XenForo_Link::convertUriToAbsoluteUri(XenForo_Template_Helper_Core::callHelper('avatar', array($user, $size)), true);
+    }else{
         return '';
+    }
 }
 
 function get_prefix_name($id)
 {
     static $prefixModel;
-    
+
     if (empty($prefixModel))
     {
         $bridge = Tapatalk_Bridge::getInstance();
         $prefixModel = $bridge->_getPrefixModel();
     }
-    
+
     $prefix = '';
     if (!empty($id))
     {
         $prefix = new XenForo_Phrase($prefixModel->getPrefixTitlePhraseName($id));
         $prefix = (string)$prefix;
     }
-    
+
     return $prefix;
 }
 
 function get_usertype_by_item($userid = '', $groupid = '', $is_banned = false, $state = '')
 {
     if($is_banned)
-        return 'banned';
+    return 'banned';
     if($state == 'email_confirm' || $state == 'email_confirm_edit' || $state == 'Email invalid (bounced)')
-        return 'inactive';
+    return 'inactive';
     if($state == 'moderated')
-        return 'unapproved';
+    return 'unapproved';
     if (empty($groupid))
     {
         if(!empty($userid))
@@ -341,21 +341,21 @@ function get_usertype_by_item($userid = '', $groupid = '', $is_banned = false, $
             $userModel = $bridge->getUserModel();
             $user = $userModel->getUserById($userid);
             if($user['is_banned'])
-                return 'banned';
+            return 'banned';
             $groupid = $user['display_style_group_id'];
         }
         else
-            return ' ';
-    }
-    
-    if($groupid == 3)
-        return 'admin';
-    else if($groupid == 4)
-        return 'mod';
-    else if($groupid == 2)
-        return 'normal';
-    else if($groupid == 1)
         return ' ';
+    }
+
+    if($groupid == 3)
+    return 'admin';
+    else if($groupid == 4)
+    return 'mod';
+    else if($groupid == 2)
+    return 'normal';
+    else if($groupid == 1)
+    return ' ';
 }
 
 /**
@@ -369,7 +369,7 @@ function get_usertype_by_item($userid = '', $groupid = '', $is_banned = false, $
  *
  * @exmaple: getContentFromRemoteServer('http://push.tapatalk.com/push.php', 0, $error_msg, 'POST', $ttp_post_data)
  * @return string when get content successfully|false when the parameter is invalid or connection failed.
-*/
+ */
 function getContentFromRemoteServer($url, $holdTime = 0, &$error_msg, $method = 'GET', $data = array())
 {
     //Validate input.
@@ -395,10 +395,10 @@ function getContentFromRemoteServer($url, $holdTime = 0, &$error_msg, $method = 
     if(!empty($holdTime) && function_exists('file_get_contents') && $method == 'GET')
     {
         $opts = array(
-            $vurl['scheme'] => array(
+        $vurl['scheme'] => array(
                 'method' => "GET",
                 'timeout' => $holdTime,
-            )
+        )
         );
 
         $context = stream_context_create($opts);
@@ -443,10 +443,10 @@ function getContentFromRemoteServer($url, $holdTime = 0, &$error_msg, $method = 
             if($method == 'POST')
             {
                 $params = array(
-                    $vurl['scheme'] => array(
+                $vurl['scheme'] => array(
                         'method' => 'POST',
                         'content' => http_build_query($data, '', '&'),
-                    )
+                )
                 );
                 $ctx = stream_context_create($params);
                 $old = ini_set('default_socket_timeout', $holdTime);
@@ -501,11 +501,11 @@ function mobi_forum_exclude($nodeId, $allNodes, $nodeModel)
         $childNodes = $nodeModel->getChildNodesForNodeIds(array($nodeId));
 
         foreach($allNodes as $index => $node)
-            if($node == $nodeId) 
-                unset($allNodes[$index]);
+        if($node == $nodeId)
+        unset($allNodes[$index]);
 
         foreach($childNodes as $_nodeid => $_node)
-            $allNodes = mobi_forum_exclude($_nodeid, $allNodes, $nodeModel);
+        $allNodes = mobi_forum_exclude($_nodeid, $allNodes, $nodeModel);
     }
 
     return $allNodes;
@@ -540,9 +540,9 @@ function getEmailFromScription($token, $code, $key)
     $verification_url = 'http://directory.tapatalk.com/au_reg_verify.php?token='.$token.'&'.'code='.$code.'&key='.$key.'&url='.$boardurl;
     $response = getContentFromRemoteServer($verification_url, 10, $error);
     if($response)
-        $result = json_decode($response, true);
+    $result = json_decode($response, true);
     if(isset($result) && isset($result['result']))
-        return $result;
+    return $result;
     else
     {
         $data = array(
@@ -553,18 +553,18 @@ function getEmailFromScription($token, $code, $key)
         );
         $response = getContentFromRemoteServer('http://directory.tapatalk.com/au_reg_verify.php', 10, $error, 'POST', $data);
         if($response)
-            $result = json_decode($response, true);
+        $result = json_decode($response, true);
         if(isset($result) && isset($result['result']))
-            return $result;
+        return $result;
         else
-            return 0; //No connection to Tapatalk Server.
+        return 0; //No connection to Tapatalk Server.
     }
 }
 
 function loadAPIKey()
 {
     global $mobi_api_key;
-    
+
     if(empty($mobi_api_key))
     {
         $option_key = XenForo_Application::get('options')->tp_push_key;
@@ -603,7 +603,7 @@ function keyED($txt,$encrypt_key)
     }
     return $tmp;
 }
- 
+
 function encrypt($txt,$key)
 {
     srand((double)microtime()*1000000);
@@ -626,15 +626,6 @@ function login_user($userId, $new_register = false)
     $conversationModel = $bridge->getConversationModel();
     $userModel = $bridge->getUserModel();
     $options = XenForo_Application::get('options');
-
-    //are you in my allow user groups?
-    if(!empty($options->tp_allowusergroup))
-    {
-        $currentUser = $userModel->getUserById($userId);
-        $allowed_group = !empty($options->tp_allowusergroup) ? explode(",", $options->tp_allowusergroup) : array();
-        if(!$userModel->isMemberOfUserGroup($currentUser, $allowed_group))
-            return xmlresperror("Sorry, you are not allowed to access this forum via Tapatalk, please contact the forum administrator.");
-    }
 
     XenForo_Model_Ip::log($userId, 'user', $userId, 'login');
     $tapatalk_user_writer = XenForo_DataWriter::create('Tapatalk_DataWriter_TapatalkUser');
@@ -663,7 +654,7 @@ function login_user($userId, $new_register = false)
     $visitor = XenForo_Visitor::getInstance();
 
     $groups = array(
-        new xmlrpcval($visitor['user_group_id'], "string")
+    new xmlrpcval($visitor['user_group_id'], "string")
     );
 
     if ($visitor['secondary_group_ids'])
@@ -707,17 +698,27 @@ function login_user($userId, $new_register = false)
         'tag'      => 'tag',
     );
     if(XenForo_Application::get('options')->currentVersionId > 1020069)
-        $supported_types['newtopic'] = 'newtopic';
+    $supported_types['newtopic'] = 'newtopic';
     foreach($supported_types as $support_type)
-        $push_status[] = new xmlrpcval(array(
+    $push_status[] = new xmlrpcval(array(
             'name'  => new xmlrpcval($support_type, 'string'),
             'value' => new xmlrpcval(true, 'boolean')
-        ), 'struct');
+    ), 'struct');
 
-	$postCountdown=0;
-	if (!XenForo_Visitor::getInstance()->hasPermission('general', 'bypassFloodCheck')){
-		$postCountdown=$options->floodCheckLength;
-	}
+    $postCountdown=0;
+    if (!XenForo_Visitor::getInstance()->hasPermission('general', 'bypassFloodCheck')){
+        $postCountdown=$options->floodCheckLength;
+    }
+
+    $largestDimension = XenForo_Model_Avatar::getSizeFromCode('l');
+    $permissions = $visitor->getPermissions();
+    if (isset($permissions) && !empty($permissions)){
+        $maxFileSize = XenForo_Permission::hasPermission($permissions, 'avatar', 'maxFileSize');
+    }
+    if (isset($maxFileSize) && !empty($maxFileSize) && $maxFileSize != -1 && $largestDimension > $maxFileSize){
+        $largestDimension = $maxFileSize;
+    }
+    $largestDimension = $largestDimension * 1024;
 
     $result = array(
         'result'            => new xmlrpcval(true, 'boolean'),
@@ -737,6 +738,9 @@ function login_user($userId, $new_register = false)
         'can_whosonline'    => new xmlrpcval(true, "boolean"),
         'can_profile'       => new xmlrpcval(true, "boolean"),
         'can_upload_avatar' => new xmlrpcval($visitor->canUploadAvatar(), "boolean"),
+        'max_avatar_size'   => new xmlrpcval($largestDimension, "int"),
+        'max_avatar_width'  => new xmlrpcval($largestDimension, "int"),
+        'max_avatar_height' => new xmlrpcval($largestDimension, "int"),
         'can_report_pm'     => new xmlrpcval(false, 'boolean'),
         'push_type'         => new xmlrpcval($push_status, 'array'),
         'allowed_extensions'=> new xmlrpcval(implode(',',preg_split("/\s+/", trim($options->attachmentExtensions))), 'string'),
@@ -745,11 +749,15 @@ function login_user($userId, $new_register = false)
         'ignored_uids'      => new xmlrpcval(isset($visitor['ignored']) && !empty($visitor['ignored']) ? $ignore_users = implode(',', array_keys(unserialize($visitor['ignored']))) : '', 'string'),
         'max_png_size'      => new xmlrpcval($options->attachmentMaxFileSize * 1000, "int"),
         'max_jpg_size'      => new xmlrpcval($options->attachmentMaxFileSize * 1000, "int"),
-    	'post_countdown'    => new xmlrpcval($postCountdown,"int"),
+        'post_countdown'    => new xmlrpcval($postCountdown,"int"),
     );
-	if ($new_register !== NULL){
-    	$result["register"]=new xmlrpcval($new_register, 'boolean');
+    if ($new_register !== NULL){
+        $result["register"]=new xmlrpcval($new_register, 'boolean');
     }
 
     return new xmlrpcresp(new xmlrpcval($result, 'struct'));
+}
+
+function tt_validate_numeric($numeric){
+    return  isset($numeric) && is_numeric($numeric) && !is_array($numeric);
 }

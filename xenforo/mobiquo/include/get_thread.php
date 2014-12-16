@@ -8,8 +8,9 @@ function get_thread_func($xmlrpc_params)
     $bridge = Tapatalk_Bridge::getInstance();
     $visitor = XenForo_Visitor::getInstance();
     $nodeModel = $bridge->getNodeModel();
+    $userModel = $bridge->getUserModel();
     $data = $bridge->_input->filterExternal(array(
-            'topic_id' => XenForo_Input::STRING,
+            'topic_id' => XenForo_Input::UINT,
             'start_num' => XenForo_Input::UINT,
             'last_num' => XenForo_Input::UINT,
             'return_html' => XenForo_Input::UINT
@@ -61,7 +62,8 @@ function get_thread_func($xmlrpc_params)
 
         if(isset($notices[$specified_id]))
         {
-            $ann_author = $bridge->getUserModel()->getUserById(1);
+            $ann_author = $userModel->getUserById(1);
+            $ann_author = $userModel->prepareUser($ann_author);
             $notice = $notices[$specified_id];
             $xmlrpc_post = array(
                 'post_id'         => new xmlrpcval($threadId, 'string'),
@@ -96,6 +98,10 @@ function get_thread_func($xmlrpc_params)
                 'forum_name'      => new xmlrpcval('', 'base64'),
                 'topic_id'      => new xmlrpcval($threadId, 'string'),
                 'topic_title'    => new xmlrpcval($bridge->renderPostPreview($notice['title']), 'base64'),
+                'topic_author_id' => new xmlrpcval($ann_author['user_id'], 'string'),
+                'topic_author_name' => new xmlrpcval($ann_author['username'], 'base64'),
+                'topic_author_avatar' => new xmlrpcval(get_avatar($ann_author), 'string'),
+                'view_number'     => new xmlrpcval(0, 'int'),
                 'prefix_id'       => new xmlrpcval('' , 'string'),
                 'prefix'          => new xmlrpcval('', 'base64'),
                 'can_subscribe'   => new xmlrpcval(false, 'boolean'),
@@ -115,6 +121,7 @@ function get_thread_func($xmlrpc_params)
                 'real_topic_id'   => new xmlrpcval($threadId, 'string'),
                 'is_approved'      => new xmlrpcval(true, 'boolean'),
                 'is_deleted'        => new xmlrpcval(false, 'boolean'),
+                'is_sticky'         => new xmlrpcval(false, 'boolean'),
             );
             $result['posts'] = new xmlrpcval($post_list, 'array');
         }
@@ -151,7 +158,7 @@ function get_thread_func($xmlrpc_params)
             $isMoved=true;
             $isMerged=false;
         }
-        if(!empty($parts[1]))
+        if(isset($parts[1]) && !empty($parts[1]))
             list($thread, $forum) = $ftpHelper->assertThreadValidAndViewable($parts[1], $threadFetchOptions, $forumFetchOptions);
         else
             return xmlresperror(new XenForo_Phrase('dark_thread_is_redirect'));
@@ -165,7 +172,7 @@ function get_thread_func($xmlrpc_params)
         'join' => XenForo_Model_Post::FETCH_USER | XenForo_Model_Post::FETCH_USER_PROFILE,
         'likeUserId' => $visitor['user_id']
     );
-    if (!empty($postFetchOptions['deleted']))
+    if (isset($postFetchOptions['deleted']) && !empty($postFetchOptions['deleted']))
     {
         $postFetchOptions['join'] |= XenForo_Model_Post::FETCH_DELETION_LOG;
     }
@@ -264,7 +271,7 @@ function get_thread_func($xmlrpc_params)
         $options = $defaultOptions;
 
         $lx_info_list = array();
-        if(!empty($post['like_users']))
+        if(isset($post['like_users']) && !empty($post['like_users']))
             $like_users = unserialize($post['like_users']);
         
         if(isset($like_users) && !empty($like_users))
@@ -279,7 +286,7 @@ function get_thread_func($xmlrpc_params)
             }
         }
         
-        if(!empty($post['attachments'])){
+        if(isset($post['attachments']) && !empty($post['attachments'])){
             $options['states']['attachments'] = $post['attachments'];
 
             if (stripos($post['message'], '[/attach]') !== false)
@@ -309,7 +316,7 @@ function get_thread_func($xmlrpc_params)
                 }
 
                 $thumbnail = '';
-                if(!empty($attachment['thumbnailUrl']))
+                if(isset($attachment['thumbnailUrl']) && !empty($attachment['thumbnailUrl']))
                     $thumbnail = XenForo_Link::convertUriToAbsoluteUri($attachment['thumbnailUrl'], true);
 
                 $attachment_list[] = new xmlrpcval(array(
@@ -369,12 +376,17 @@ function get_thread_func($xmlrpc_params)
         $post_list[] = new xmlrpcval($xmlrpc_post, 'struct');
     }
 
+    $topicAuthor = $userModel->getUserById($thread['user_id']);
     $result = array(
         'total_post_num'  => new xmlrpcval($totalPosts, 'int'),
         'forum_id'        => new xmlrpcval($thread['node_id'], 'string'),
         'forum_name'      => new xmlrpcval($forum['title'], 'base64'),
         'topic_id'        => new xmlrpcval($oldTopicId, 'string'),
         'topic_title'     => new xmlrpcval($thread['title'], 'base64'),
+        'topic_author_id' => new xmlrpcval(isset($topicAuthor['user_id']) ? $topicAuthor['user_id'] : 0, 'string'),
+        'topic_author_name' => new xmlrpcval(isset($topicAuthor['username']) ? $topicAuthor['username'] : '', 'base64'),
+        'topic_author_avatar' => new xmlrpcval(isset($topicAuthor['user_id']) ? get_avatar($topicAuthor) : '', 'string'),
+        'view_number'     => new xmlrpcval($thread['view_count'], 'int'),
         'prefix_id'       => new xmlrpcval($thread['prefix_id'] , 'string'),
         'prefix'          => new xmlrpcval(get_prefix_name($thread['prefix_id']), 'base64'),
         'can_subscribe'   => new xmlrpcval(true, 'boolean'),
@@ -396,6 +408,7 @@ function get_thread_func($xmlrpc_params)
         'real_topic_id'   => new xmlrpcval($thread['thread_id'], 'string'),
         'is_approved'       => new xmlrpcval(!$thread['isModerated'], 'boolean'),
         'is_deleted'        => new xmlrpcval($thread['isDeleted'], 'boolean'),
+        'is_sticky'         => new xmlrpcval($thread['sticky'], 'boolean'),
     );
     if(!empty($breadcrumblist) && $breadcrumb_enable)
     {

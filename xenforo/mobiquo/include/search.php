@@ -129,7 +129,7 @@ function search_func($xmlrpc_params)
         {
             $threadIds = array();
             foreach($results['results'] as $result){
-                if(!empty($result['content']['thread_id']))
+                if(isset($result['content']['thread_id']) && !empty($result['content']['thread_id']))
                 $threadIds[]=$result['content']['thread_id'];
             }
             if(isset($data['threadid']) && !empty($data['threadid']))
@@ -188,7 +188,7 @@ function search_func($xmlrpc_params)
                 );
 
                 // this is not always available
-                if(!empty($thread['post_id'])){
+                if(isset($thread['post_id']) && !empty($thread['post_id'])){
                     $newTopic['post_id'] = new xmlrpcval($thread['post_id'], 'string');
                 }
 
@@ -358,7 +358,7 @@ function build_constraints($data, $bridge)
                 try
                 {
                     $date = new DateTime($date, $tz);
-                    if (!empty($filterOptions['dayEnd']))
+                    if (isset($filterOptions['dayEnd']) && !empty($filterOptions['dayEnd']))
                     {
                         $date->setTime(23, 59, 59);
                     }

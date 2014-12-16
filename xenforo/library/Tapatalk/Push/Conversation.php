@@ -18,8 +18,8 @@ class Tapatalk_Push_Conversation extends XFCP_Tapatalk_Push_Conversation
 		$recepients = array();
 		$visitor = XenForo_Visitor::getInstance();
 		$current_user = $visitor->toArray();
-		$conver_msg['conv_sender_id'] = !empty($current_user['user_id']) ? $current_user['user_id'] : $conver_msg['last_message_user_id'];
-		$conver_msg['conv_sender_name'] = !empty($current_user['username']) ? $current_user['username'] : $conver_msg['last_message_username'];
+		$conver_msg['conv_sender_id'] = isset($current_user['user_id']) && !empty($current_user['user_id']) ? $current_user['user_id'] : $conver_msg['last_message_user_id'];
+		$conver_msg['conv_sender_name'] = isset($current_user['username']) && !empty($current_user['username']) ? $current_user['username'] : $conver_msg['last_message_username'];
 		foreach($participated_members as $mem_id => $member)
 		{
 			if($mem_id == $conver_msg['conv_sender_id']) continue;

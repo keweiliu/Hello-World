@@ -6,7 +6,7 @@ error_reporting(0);
 //define('CWD1', (($getcwd = getcwd()) ? $getcwd : '.'));
 
 if (!defined('SCRIPT_ROOT')){
-	define('SCRIPT_ROOT', empty($_SERVER['SCRIPT_FILENAME']) ? '../../' : dirname(dirname($_SERVER['SCRIPT_FILENAME'])).'/');
+    define('SCRIPT_ROOT', empty($_SERVER['SCRIPT_FILENAME']) ? '../../' : dirname(dirname($_SERVER['SCRIPT_FILENAME'])).'/');
 }
 
 require_once 'Tools.php';
@@ -23,11 +23,5 @@ ini_set('display_errors', 0);
 // Revert XenForo's error handler also
 restore_error_handler();
 
-$mobiquo_config = Tools::get_mobiquo_config();
-$current_plugin_version = $mobiquo_config['version'];
-Tools::print_screen($current_plugin_version);
+Tools::print_screen();
 exit;
-
-
-
-

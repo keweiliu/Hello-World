@@ -28,7 +28,9 @@ function new_conversation_func($xmlrpc_params)
     $conversationDw->set('open_invite', 0);
     $conversationDw->set('conversation_open', 1);
     $conversationDw->addRecipientUserNames($input['recipients']); // checks permissions
-    
+
+    $input['message'] = XenForo_Helper_String::autoLinkBbCode($input['message']);
+
     $messageDw = $conversationDw->getFirstMessageDw();
     $messageDw->set('message', $input['message']);
     $messageDw->setExtraData(XenForo_DataWriter_ConversationMessage::DATA_ATTACHMENT_HASH,$input['group_id']);

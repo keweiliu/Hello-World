@@ -1,5 +1,4 @@
 
-
 .mobile_banner,.mobile_banner_inner,.mobile_banner .mobile_banner_button
 {
 -webkit-box-sizing:border-box;
@@ -18,7 +17,7 @@ overflow:hidden;
 max-width:600px;
 width:100%;
 font-size:8px;
-z-index:999;
+z-index:2147483647;
 -webkit-font-smoothing:antialiased;
 -webkit-transition:all .3s ease-in-out;
 -moz-transition:all .3s ease-in-out;
@@ -59,7 +58,9 @@ text-align:center
 {
 font-size:2.250em;
 margin-bottom:.188em;
-padding:0 2em
+padding:0 2em;
+font-weight:bold;
+line-height:1.3em;
 }
 
 .mobile_banner_subheading
@@ -325,4 +326,10 @@ h3.mobile_banner_heading
     background:#f0f0f0;
     border: 0;
     line-height: 1.212em;
+}
+
+/* for vb mobile compatibility */
+.ui-mobile [data-role="page"], .ui-mobile [data-role="dialog"], .ui-page
+{
+    top:auto;
 }

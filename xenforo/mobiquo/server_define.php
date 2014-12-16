@@ -17,6 +17,7 @@ $server_param = array(
 							 array($xmlrpcStruct,$xmlrpcString, $xmlrpcString, $xmlrpcBase64, $xmlrpcBase64),
 							 array($xmlrpcStruct,$xmlrpcString, $xmlrpcString, $xmlrpcBase64),
 							 array($xmlrpcStruct,$xmlrpcString, $xmlrpcString, $xmlrpcBase64, $xmlrpcBase64,$xmlrpcBase64,$xmlrpcStruct)),
+							 array($xmlrpcStruct,$xmlrpcString, $xmlrpcString),
 		'docstring' => 'login need three parameters,the first is user name(Base64), second and thrid is token and code(String).',
 	),
 	
@@ -473,6 +474,8 @@ $server_param = array(
 	'm_delete_post' => array(
 		'function'  => 'm_delete_post_func',
 		'signature' => array(array($xmlrpcArray, $xmlrpcString, $xmlrpcInt, $xmlrpcBase64)),
+                            array($xmlrpcArray, $xmlrpcString, $xmlrpcInt),
+                            array($xmlrpcArray, $xmlrpcString),
 		'docstring' => '',
 	),
 
@@ -591,4 +594,25 @@ $server_param = array(
 		'function' => 'm_close_report_func',
 		'signature' =>array(array($xmlrpcArray,$xmlrpcString)),
 	),
+	
+	'update_signature' => array(
+        'function' => 'update_signature_func',
+        'signature' =>array(array($xmlrpcArray, $xmlrpcBase64),),
+    ),
+    'get_topic_participants' => array(
+        'function' => 'get_topic_participants_func',
+        'signature' =>array(array($xmlrpcArray, $xmlrpcString, $xmlrpcInt),),
+    ),
+    'activate_account' => array(
+        'function' => 'activate_account_func',
+        'signature' =>array(array($xmlrpcArray, $xmlrpcBase64, $xmlrpcString, $xmlrpcString),),
+    ),
+    'set_api_key' => array(
+        'function' => 'set_api_key_func',
+        'signature' => array(array($xmlrpcStruct)),
+    ),
+    'sync_user' => array(
+        'function' => 'sync_user_func',
+        'signature' => array(array($xmlrpcStruct)),
+    ),
 );

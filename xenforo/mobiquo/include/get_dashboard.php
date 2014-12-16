@@ -97,11 +97,11 @@ function get_dashboard_func($xmlrpc_params)
 			'timestamp'         => new xmlrpcval($alert['event_date'],'string'),
 		);
 
-		if(!empty($alert['content']['post_id']))
+		if(isset($alert['content']['post_id']) && !empty($alert['content']['post_id']))
 			$newAlert['post_id'] = new xmlrpcval($alert['content']['post_id'], 'string');
-		if(!empty($alert['content']['topic_id']))
+		if(isset($alert['content']['topic_id']) && !empty($alert['content']['topic_id']))
 			$newAlert['topic_id'] = new xmlrpcval($alert['content']['topic_id'], 'string');
-		if(!empty($alert['user'])){
+		if(isset($alert['user']) && !empty($alert['user'])){
 			$newAlert['icon_url'] = new xmlrpcval(get_avatar($alert['user']), 'string');
 			$newAlert['username'] = new xmlrpcval($alert['user']['username'], 'base64');
 		}

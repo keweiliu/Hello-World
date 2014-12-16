@@ -11,7 +11,7 @@ function get_thread_by_unread_func($xmlrpc_params)
     $visitor = XenForo_Visitor::getInstance();
 
     $data = $bridge->_input->filterExternal(array(
-        'topic_id' => XenForo_Input::STRING,
+        'topic_id' => XenForo_Input::UINT,
         'posts_per_request' => XenForo_Input::UINT,
         'return_html' => XenForo_Input::UINT,
     ), $params);

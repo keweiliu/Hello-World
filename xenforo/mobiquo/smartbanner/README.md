@@ -55,6 +55,7 @@ Simply add two pieces of blow html code in head and body will get everything don
             
             var app_referer        = "https://support.tapatalk.com/index.php";
             var tapatalk_dir_name  = "mobiquo";
+            var mobiquo_extension  = "php";
             var app_welcome_enable = 1;
         </script>
         <script src="mobiquo/smartbanner/appbanner.js" type="text/javascript"></script>
@@ -81,6 +82,8 @@ Simply add two pieces of blow html code in head and body will get everything don
 * `app_forum_name`: Your forum name
 * `app_location_url`: deep-link url associate with 'Open In App' button, check [App Scheme Rules](#app-scheme-rules)
 * `functionCallAfterWindowLoad`: For any reason, it's hard to include the body code in page source, set this to '1', and you don't need to add the banner body code any more, the **tapatalkDetect** function will be called after page load, so the banner will be displayed at last. We don't recommend this usage if it's able to add the banner body code.
+* `tapatalk_dir_name`: optional, the directory where mobiquo files are, if not included, default as 'mobiquo'
+* `mobiquo_extension`: optional, the extension of the mobiquo file, if not included, default as 'php'
 
 
 
@@ -94,6 +97,7 @@ Here is the php code samle
     $app_forum_name = {forum name};
     $board_url = {forum url to root};
     $tapatalk_dir_url = $board_url.'/'.$tapatalk_dir;
+	$mobiquo_extension = 'php';
     $api_key = {md5 string of tapatalk api key};
     $is_mobile_skin = {this is on a mobile skin};
     $app_location_url = {page location url with tapatalk scheme rules};
@@ -107,6 +111,7 @@ Here is the php code samle
     
     // for welcome screen
     $app_ads_enable = {welcome screen option status}; // optional, default to be enable
+    $app_banner_enable = {smartbanner option status}; // optional, default to be enable
     
     // for google app-indexing
     $page_type = {current page type}; // valid data: index, forum, topic, post, pm, search, profile, online, other

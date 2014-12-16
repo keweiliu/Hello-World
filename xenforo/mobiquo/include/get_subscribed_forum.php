@@ -22,9 +22,11 @@ function get_subscribed_forum_func()
     }
     else
     {
-        $icon_read =   FORUM_ROOT.'mobiquo/forum_icons/forum-read.png';
-        $icon_unread = FORUM_ROOT.'mobiquo/forum_icons/forum-unread.png';
-        $icon_link =   FORUM_ROOT.'mobiquo/forum_icons/link.png';
+        $tapatalk_dir_name = XenForo_Application::get('options')->tp_directory;
+        if (empty($tapatalk_dir_name)) $tapatalk_dir_name = 'mobiquo';
+        $icon_read =   FORUM_ROOT.$tapatalk_dir_name.'/forum_icons/forum-read.png';
+        $icon_unread = FORUM_ROOT.$tapatalk_dir_name.'/forum_icons/forum-unread.png';
+        $icon_link =   FORUM_ROOT.$tapatalk_dir_name.'/forum_icons/link.png';
     }
     $bridge = Tapatalk_Bridge::getInstance();
     $visitor = XenForo_Visitor::getInstance();

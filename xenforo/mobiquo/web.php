@@ -67,7 +67,7 @@ function get_path()
 {
 	$path =  '../';
 
-	if (!empty($_SERVER['SCRIPT_NAME']) && !empty($_SERVER['HTTP_HOST']))
+	if (isset($_SERVER['SCRIPT_NAME']) && !empty($_SERVER['SCRIPT_NAME']) && isset($_SERVER['HTTP_HOST']) && !empty($_SERVER['HTTP_HOST']))
 	{
 		$path = $_SERVER['HTTP_HOST'];
 		$path .= dirname($_SERVER['SCRIPT_NAME']);

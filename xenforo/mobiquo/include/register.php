@@ -19,12 +19,12 @@ function register_func($xmlrpc_params)
         'custom_register_fields' =>XenForo_Input::ARRAY_SIMPLE,
     ), $params);
     
-    if(empty($bridge->mobiquo_configuration['native_register'])) 
+    if(!isset($bridge->mobiquo_configuration['native_register']) || empty($bridge->mobiquo_configuration['native_register']))
         return new xmlrpcresp($bridge->responseError('Application Error : social sign in is not supported currently.'));
     
     if(isset($options->tp_push_key)&& !empty($options->tp_push_key) && !empty($data['token']))
     {
-        if(empty($bridge->mobiquo_configuration['sso_register'])) 
+        if(!isset($bridge->mobiquo_configuration['sso_register']) || empty($bridge->mobiquo_configuration['sso_register']))
             return new xmlrpcresp($bridge->responseError('Application Error : social sign in is not supported currently.'));
         
         $email_response = getEmailFromScription($data['token'], $data['code'], $options->tp_push_key);
@@ -95,17 +95,30 @@ function register_user($data, $need_email_verification = false, $gravatar = fals
         }
     }
     //apply profile
-    if(isset($profile['birthday']) && !empty($profile['birthday']))
-        $birthday = preg_split('/-/', $profile['birthday']);
+    if(isset($data['custom_register_fields']['birthday']) && !empty($data['custom_register_fields']['birthday'])){
+        $birthday = preg_split('/-/', $data['custom_register_fields']['birthday']);
+        unset($data['custom_register_fields']['birthday']);
+    }
+    $options = XenForo_Application::get('options');
+    $requireDob = $options->get('registrationSetup', 'requireDob');
+    $requireLocation =  $options->get('registrationSetup', 'requireLocation');
+    if(isset($data['custom_register_fields']['location']) && !empty($data['custom_register_fields']['location'])){
+        $location = $data['custom_register_fields']['location'];
+        unset($data['custom_register_fields']['location']);
+    }else if (isset($profile['location']) && !empty($profile['location'])){
+        $location = $data['custom_register_fields']['location'];
+    }
 
     //user state
     $xf_options = XenForo_Application::get('options');
     $xf_reg_option = $xf_options->registrationSetup;
-    if(empty($xf_reg_option['emailConfirmation']) && empty($xf_reg_option['moderation']))
+    $email_confirmation = $xf_reg_option['emailConfirmation'];
+    $admin_approve = $xf_reg_option['moderation'];
+    if(empty($email_confirmation) && empty($admin_approve))
         $user_state = 'valid';
-    else if(!empty($xf_reg_option['emailConfirmation']) && empty($xf_reg_option['moderation']))
+    else if(!empty($email_confirmation) && empty($admin_approve))
         $user_state = $need_email_verification ? 'email_confirm' : 'valid';
-    else if(empty($xf_reg_option['emailConfirmation']) && !empty($xf_reg_option['moderation']))
+    else if(empty($email_confirmation) && !empty($admin_approve))
         $user_state = 'moderated';
     else
         $user_state = $need_email_verification ? 'email_confirm' : 'moderated';
@@ -116,16 +129,24 @@ function register_user($data, $need_email_verification = false, $gravatar = fals
             $gender=$profile['gender'];
         }
     }
-    
+
+    $userGroupModel = $bridge->getUserGroupModel();
+    $userGroups = $userGroupModel->getAllUserGroups();
+    $tapatalk_reg_ug = $xf_options->tapatalk_reg_ug;
+    if (!array_key_exists($tapatalk_reg_ug, $userGroups)){
+        $tapatalk_reg_ug = 0;
+    }
+
     $extra_data = array(
-        'user_group_id' => isset($xf_options->tapatalk_reg_ug) && intval($xf_options->tapatalk_reg_ug) ? intval($xf_options->tapatalk_reg_ug) : XenForo_Model_User::$defaultRegisteredGroupId,
+        'user_group_id' => XenForo_Model_User::$defaultRegisteredGroupId,
+        'secondary_group_ids' => $tapatalk_reg_ug,
         'user_state' => $user_state,
         'is_discouraged' => '0',
         'gender' => $gender,
-        'dob_day' => isset($birthday[2]) && $birthday[2]>=1 && $birthday[2]<=31 ? $birthday[2] : '0',
-        'dob_month' => isset($birthday[1]) && $birthday[2]>=1 && $birthday[2]<=12 ? $birthday[1] : '0',
-        'dob_year' => isset($birthday[0]) ? $birthday[0] : '0',
-        'location' => isset($profile['location']) && !empty($profile['location']) ? $profile['location'] : '',
+        'dob_day' => isset($birthday[2]) && $birthday[2]>=1 && $birthday[2]<=31 ? $birthday[2] : ($requireDob ? '01' : '0'),
+        'dob_month' => isset($birthday[1]) && $birthday[2]>=1 && $birthday[2]<=12 ? $birthday[1] : ($requireDob ? '01' : '0'),
+        'dob_year' => isset($birthday[0]) ? $birthday[0] : ($requireDob ? '1970' : '0'),
+        'location' => isset($location) && !empty($location) ? $location : '',
         'occupation' => '',
         'custom_title' => '',
         'homepage' => isset($profile['link']) && !empty($profile['link']) ? $profile['link'] : '',
@@ -136,7 +157,7 @@ function register_user($data, $need_email_verification = false, $gravatar = fals
         'trophy_points' => '0',
         'style_id' => '0',
         'language_id' => XenForo_Visitor::getInstance()->get('language_id'),
-        'timezone' => empty(XenForo_Application::get('options')->guestTimeZone)? 'Europe/London' : XenForo_Application::get('options')->guestTimeZone,
+        'timezone' => (!isset(XenForo_Application::get('options')->guestTimeZone) || empty(XenForo_Application::get('options')->guestTimeZone))? 'Europe/London' : XenForo_Application::get('options')->guestTimeZone,
         'content_show_signature' => '1',
         'enable_rte' => '1',
         'visible' => '1',
@@ -171,7 +192,7 @@ function register_user($data, $need_email_verification = false, $gravatar = fals
     $customFieldsShown=array_keys($userFields);
     foreach ($customFields as $key=>$value)
     {
-        if (!empty($userFields[$key]))
+        if (isset($userFields[$key]) && !empty($userFields[$key]))
         {
             switch ($userFields[$key]['field_type'])
             {

@@ -36,9 +36,9 @@ function m_rename_topic_func($xmlrpc_params)
     $bridge = Tapatalk_Bridge::getInstance();
 
     $input = $bridge->_input->filterExternal(array(
-        'topic_id'  => XenForo_Input::STRING,
+        'topic_id'  => XenForo_Input::UINT,
         'title'      => XenForo_Input::STRING,
-        'prefix_id'  => XenForo_Input::STRING,
+        'prefix_id'  => XenForo_Input::UINT,
     ), $params);
 
     $visitor = XenForo_Visitor::getInstance();
@@ -373,9 +373,9 @@ function m_move_post_func($xmlrpc_params)
     
     $input = $bridge->_input->filterExternal(array(
         'postId'    => XenForo_Input::STRING,
-        'threadId'  => XenForo_Input::STRING,
+        'threadId'  => XenForo_Input::UINT,
         'title'  => XenForo_Input::STRING,
-        'node_id'   => XenForo_Input::STRING,
+        'node_id'   => XenForo_Input::UINT,
     ), $params);
     
     $postIds = array_unique(array_map('intval', explode(',', $input['postId'])));
@@ -433,7 +433,7 @@ function m_delete_post_by_user_func($xmlrpc_params)
     $userModel = $bridge->getUserModel();
     
     $input = $bridge->_input->filterExternal(array(
-        'userId'    => XenForo_Input::STRING,
+        'userId'    => XenForo_Input::UINT,
         'reason'    => XenForo_Input::STRING,
     ), $params);
     
@@ -498,17 +498,17 @@ function m_ban_user_func($xmlrpc_params)
     }
     $input['user_id'] = $user['user_id'];
     if ($ban = $bridge->getBanningModel()->getBannedUserById($user['user_id']))
-	{
-		$existing = true;
-	}
-	else
-	{
-	    $existing = false;
-	}
+    {
+        $existing = true;
+    }
+    else
+    {
+        $existing = false;
+    }
     if (!$userModel->ban($input['user_id'], $input['end_date'], $input['reason'], $existing, $errorKey))
-	{
-		get_error($errorKey);
-	}
+    {
+        get_error($errorKey);
+    }
     $options = array(
         'action_threads'  => $input['mode'] == 2 ? 1 : 0,
         'delete_messages' => $input['mode'] == 2 ? 1 : 0,
@@ -533,7 +533,7 @@ function m_unban_user_func($xmlrpc_params){
     $bridge = Tapatalk_Bridge::getInstance();
     $userModel = $bridge->getUserModel();
     
-    $input = $bridge->_input->filterExternal(array("user_id"=>XenForo_Input::STRING),$params);
+    $input = $bridge->_input->filterExternal(array("user_id"=>XenForo_Input::UINT),$params);
     $userId = $input['user_id'];
     $user = $userModel->getUserById($userId, array('join' => XenForo_Model_User::FETCH_LAST_ACTIVITY));
     if (!$user)
@@ -770,7 +770,7 @@ function m_get_report_post_func($xmlrpc_params)
     }
     
     $result = new xmlrpcval(array(
-        'total_report_num'    => new xmlrpcval(count($reports), 'int'),
+        'total_report_num'    => new xmlrpcval(count($report_list), 'int'),
         'reports'             => new xmlrpcval($report_list, 'array'),
     ), 'struct');
 
@@ -778,19 +778,15 @@ function m_get_report_post_func($xmlrpc_params)
 }
 
 function m_close_report_func($xmlrpc_params){
+    $bridge = Tapatalk_Bridge::getInstance();
+    $reportModel = $bridge->getReportModel();
     $visitor = XenForo_Visitor::getInstance();
-    
-    if (!$visitor->get("is_admin")&&!$visitor->hasAdminPermission("user")){
-        get_error('security_error_occurred');
-    }
     $params= php_xmlrpc_decode($xmlrpc_params);
-    $bridge=Tapatalk_Bridge::getInstance();
-
     $input=$bridge->_input->filterExternal(array("post_id"=>XenForo_Input::STRING), $params);
 
-    if ($visitor->hasPermission("profilePost", "post"))
-    $reportModel=$bridge->getReportModel();
     $report=$reportModel->getReportByContent("post",$input['post_id']);
+    $report = $reportModel->getVisibleReportById($report['report_id']);
+
     if(!$report){
         get_error('requested_report_not_found');
     }
@@ -807,7 +803,7 @@ function m_close_report_func($xmlrpc_params){
             'state_change' => 'resolved'
     ));
     $dw->save();
-    
+
     $dw = XenForo_DataWriter::create('XenForo_DataWriter_Report');
     $dw->setExistingData($report, true);
     $dw->set('report_state', 'resolved');

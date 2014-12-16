@@ -10,7 +10,7 @@ function get_conversation_func($xmlrpc_params)
     $conversationModel = $bridge->getConversationModel();
     
     $input = $bridge->_input->filterExternal(array(
-        'conversationId'    => XenForo_Input::STRING,
+        'conversationId'    => XenForo_Input::UINT,
         'start_num'         => XenForo_Input::UINT,
         'last_num'          => XenForo_Input::UINT,
         'return_html'       => XenForo_Input::UINT,
@@ -101,7 +101,7 @@ function get_conversation_func($xmlrpc_params)
                         break;
                 }
                 $thumbnail = '';
-                if(!empty($attachment['thumbnailUrl']))
+                if(isset($attachment['thumbnailUrl']) && !empty($attachment['thumbnailUrl']))
                     $thumbnail = XenForo_Link::convertUriToAbsoluteUri($attachment['thumbnailUrl'], true);
                 $attach_url = XenForo_Link::convertUriToAbsoluteUri(XenForo_Link::buildPublicLink('attachments', $attachment), true);
                 $attachs_info[$attachment['attachment_id']] =  array(
@@ -161,7 +161,7 @@ function get_conversation_func($xmlrpc_params)
         'can_invite'        => new xmlrpcval($viewParams['canInviteUsers'], 'boolean'),
         'can_edit'          => new xmlrpcval($viewParams['canEditConversation'], 'boolean'),
         'can_close'         => new xmlrpcval($viewParams['canEditConversation'], 'boolean'),
-        'is_close'          => new xmlrpcval(empty($conversation['conversation_open']), 'boolean'),
+        'is_close'          => new xmlrpcval(!isset($conversation['conversation_open']) || empty($conversation['conversation_open']), 'boolean'),
         'can_upload'        => new xmlrpcval(XenForo_Permission::hasPermission($viewingUser['permissions'], 'conversation', 'uploadAttachment'), 'boolean'),
         'participants'      => new xmlrpcval($participants, 'struct'),
         'list'              => new xmlrpcval($message_list, 'array'),

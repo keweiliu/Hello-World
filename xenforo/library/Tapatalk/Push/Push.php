@@ -21,7 +21,7 @@ class Tapatalk_Push_Push
             $tapatalk_user = $tapatalkUser_model->getTapatalkUserById($post['alerted_user_id']);
             if(empty($tapatalk_user))
                 return false;
-            
+
             if (self::can_view_post($post['content_id'], $post['alerted_user_id']) === false)
                 return false;
             
@@ -33,10 +33,25 @@ class Tapatalk_Push_Push
                 'type'      => $post['action'],
                 'id'        => $thread['thread_id'],
                 'subid'     => $post['content_id'],
+                'subfid'       => $thread['node_id'],
                 'title'     => $title,
                 'author'    => $author,
+                'authorid'  => $post['user_id'],
                 'dateline'  => $post['event_date'],
             );
+
+            $options = XenForo_Application::get('options');
+            if(isset($options->tapatalk_push_notifications) && $options->tapatalk_push_notifications == 1){
+                $postModel=XenForo_Model::create('XenForo_Model_Post');
+                $post2 = $postModel->getPostById($post['content_id']);
+                $myOptions = array(
+                    'states' => array(
+                        'returnHtml' => true,
+                    ),
+                );
+                $content = self::cleanPost($post2['message'], $myOptions);
+                $ttp_data['content'] = $content;
+            }
             $boardurl = XenForo_Application::get('options')->boardUrl;
             $ttp_post_data = array(
                 'url'  => $boardurl,
@@ -51,36 +66,56 @@ class Tapatalk_Push_Push
 
     public static function tapatalk_push_conv($conver_msg)
     {
-        if (!empty($conver_msg['recepients']) && $conver_msg['title'] && (function_exists('curl_init') || ini_get('allow_url_fopen')))
+        if (isset($conver_msg['recepients']) && !empty($conver_msg['recepients']) && $conver_msg['title'] && (function_exists('curl_init') || ini_get('allow_url_fopen')))
         {
+            $options = XenForo_Application::get('options');
+            if(isset($options->tapatalk_push_notifications) && $options->tapatalk_push_notifications == 1){
+                $convModel = XenForo_Model::create('XenForo_Model_Conversation');
+                $message = $convModel->getConversationMessageById($conver_msg['last_message_id']);
+                $myOptions = array(
+                    'states' => array(
+                        'returnHtml' => true,
+                    ),
+                );
+                $content = self::cleanPost($message['message'], $myOptions);
+            }
+
             $tapatalkUser_model = XenForo_Model::create('Tapatalk_Model_TapatalkUser');
             $spcTpUsers = $tapatalkUser_model->getAllPmOpenTapatalkUsersInArray($conver_msg['recepients']);
             $title = Tapatalk_Push_Push::tt_push_clean($conver_msg['title']);
             $author = Tapatalk_Push_Push::tt_push_clean($conver_msg['conv_sender_name']);
             $boardurl = XenForo_Application::get('options')->boardUrl;
+            $tpu_ids = '';
             foreach($spcTpUsers as $tpu_id => $tapatalk_user)
             {
-                $ttp_data = array(
-                    'userid'    => $tpu_id,
+                $tpu_ids .= $tpu_id . ',';
+            }
+            $tpu_ids = substr($tpu_ids, 0, strlen($tpu_ids)-1);
+            $ttp_data = array(
+                    'userid'    => $tpu_ids,
                     'type'      => 'conv',
                     'id'        => $conver_msg['conversation_id'],
                     'subid'     => $conver_msg['reply_count']+1,
+                    'mid'       => $conver_msg['last_message_id'],
                     'title'     => $title,
                     'author'    => $author,
+                    'authorid'  => $conver_msg['conv_sender_id'],
                     'dateline'  => time(),
-                );
+            );
+            if (isset($content) && !empty($content)){
+                $ttp_data['content'] = $content;
+            }
 
-                $ttp_post_data = array(
+            $ttp_post_data = array(
                     'url'  => $boardurl,
                     'data' => base64_encode(serialize(array($ttp_data))),
-                );
+            );
 
             $options = XenForo_Application::get('options');
             if(isset($options->tp_push_key) && !empty($options->tp_push_key))
-                $ttp_post_data['key'] = $options->tp_push_key;
+            $ttp_post_data['key'] = $options->tp_push_key;
 
             $return_status = self::do_push_request($ttp_post_data);
-            }
         }
     }
 
@@ -361,5 +396,101 @@ class Tapatalk_Push_Push
         }
         
         return true;
+    }
+    protected static function cleanPost($post, $extraStates=array())
+    {
+        if (!isset($extraStates['states']['returnHtml']))
+            $extraStates['states']['returnHtml'] = false;
+
+        if ($extraStates['states']['returnHtml'])
+        {
+            $post = str_replace("&", '&amp;', $post);
+            $post = str_replace("<", '&lt;', $post);
+            $post = str_replace(">", '&gt;', $post);
+            $post = str_replace("\r", '', $post);
+            $post = str_replace("\n", '<br />', $post);
+        }
+
+        if(!$extraStates)
+            $extraStates = array('states' => array());
+
+        // replace code like content with quote
+        //      $post = preg_replace('/\[(CODE|PHP|HTML)\](.*?)\[\/\1\]/si','[CODE]$2[/CODE]',$post);
+
+        $post = self::processListTag($post);
+        $bbCodeFormatter = new Tapatalk_BbCode_Formatter_Tapatalk((boolean)$extraStates['states']['returnHtml']);
+        $bbCodeParser = XenForo_BbCode_Parser::create($bbCodeFormatter);
+        $post = $bbCodeParser->render($post, $extraStates['states']);
+        $post = trim($post);
+
+
+        $options = XenForo_Application::get('options');
+        $custom_replacement = $options->tapatalk_custom_replacement;
+        if(!empty($custom_replacement))
+        {
+            $replace_arr = explode("\n", $custom_replacement);
+            foreach ($replace_arr as $replace)
+            {
+                preg_match('/^\s*(\'|")((\#|\/|\!).+\3[ismexuADUX]*?)\1\s*,\s*(\'|")(.*?)\4\s*$/', $replace,$matches);
+                if(count($matches) == 6)
+                {
+                    $temp_post = $post;
+                    $post = @preg_replace($matches[2], $matches[5], $post);
+                    if(empty($post))
+                    {
+                        $post = $temp_post;
+                    }
+                }
+            }
+        }
+        return $post;
+    }
+    protected static function processListTag($message)
+    {
+        $contents = preg_split('#(\[LIST=[^\]]*?\]|\[/?LIST\])#siU', $message, -1, PREG_SPLIT_NO_EMPTY | PREG_SPLIT_DELIM_CAPTURE);
+
+        $result = '';
+        $status = 'out';
+        foreach($contents as $content)
+        {
+            if ($status == 'out')
+            {
+                if ($content == '[LIST]')
+                {
+                    $status = 'inlist';
+                } elseif (strpos($content, '[LIST=') !== false)
+                {
+                    $status = 'inorder';
+                } else {
+                    $result .= $content;
+                }
+            } elseif ($status == 'inlist')
+            {
+                if ($content == '[/LIST]')
+                {
+                    $status = 'out';
+                } else
+                {
+                    $result .= str_replace('[*]', '  * ', ltrim($content));
+                }
+            } elseif ($status == 'inorder')
+            {
+                if ($content == '[/LIST]')
+                {
+                    $status = 'out';
+                } else
+                {
+                    $index = 1;
+                    $result .= preg_replace_callback('/\[\*\]/s',
+                        'Tapatalk_Push_Push::matchCount',
+                    ltrim($content));
+                }
+            }
+        }
+        return $result;
+    }
+    protected static function matchCount($matches){
+        static $index = 1;
+        return '  '.$index++.'. ';
     }
 }

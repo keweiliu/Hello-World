@@ -51,9 +51,9 @@ function get_online_users_func($xmlrpc_params)
         foreach($onlineUsers as $id => $user)
         {
             $activity = new XenForo_Phrase('viewing_forum');
-            if(!empty($user['activityDescription'])){
+            if(isset($user['activityDescription']) && !empty($user['activityDescription'])){
                 $activity = $user['activityDescription'];
-                if(!empty($user['activityItemTitle'])){
+                if(isset($user['activityItemTitle']) && !empty($user['activityItemTitle'])){
                     $activity .= " ".$user['activityItemTitle'];
                 }
             }

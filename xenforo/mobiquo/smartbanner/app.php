@@ -3,14 +3,29 @@
 defined('IN_MOBIQUO') or exit;
 error_reporting(0);
 
+if (isset($_SERVER['HTTP_HOST']) && isset($_SERVER['SCRIPT_NAME']))
+    $default_board_url = (tt_is_https() ? 'https://' : 'http://') . $_SERVER['HTTP_HOST'] . dirname(dirname($_SERVER['SCRIPT_NAME']));
+else
+    $default_board_url = '';
+
 $title = isset($_GET['name']) ? $_GET['name'] : 'Stay in touch with us via Tapatalk app';
 $name = isset($_GET['name']) ? $_GET['name'] : 'online forums';
-$board_url = isset($_GET['board_url']) ? $_GET['board_url'] : '';
 $code = isset($_GET['code']) ? $_GET['code'] : '';
-$referer = isset($_GET['referer']) ? $_GET['referer'] : '';
-$redirect_url = $referer ? $referer : ($board_url ? $board_url : dirname(dirname(dirname($_SERVER['REQUEST_URI']))));
+
+$board_url = isset($_GET['board_url']) && trim($_GET['board_url']) ? trim($_GET['board_url']) : '';
+if (($board_url && $default_board_url && parse_url($board_url, PHP_URL_HOST) != $_SERVER['HTTP_HOST']) || empty($board_url))
+{
+    $board_url = $default_board_url;
+}
+
+$redirect_url = isset($_GET['referer']) && trim($_GET['referer']) ? trim($_GET['referer']) : '';
+if ($redirect_url && $default_board_url && parse_url($redirect_url, PHP_URL_HOST) != $_SERVER['HTTP_HOST'])
+{
+    $redirect_url = $default_board_url;
+}
+
 $deeplink = isset($_GET['deeplink']) ? $_GET['deeplink'] : $board_url;
-$lang = isset($_GET['lang']) ? $_GET['lang'] : 'en';
+
 if (!preg_match('#^https?://#si', $redirect_url)) $redirect_url = '/';
 
 $banner_image_path = 'smartbanner/images/';
@@ -32,12 +47,18 @@ foreach($image_list as $image)
     }
 }
 
+function tt_is_https()
+{
+    return (isset($_SERVER['HTTPS']) && trim($_SERVER['HTTPS']) && $_SERVER['HTTPS'] !== 'off')
+        || (isset($_SERVER['SERVER_PORT']) && $_SERVER['SERVER_PORT'] == 443);
+}
+
 ?>
 <!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Frameset//EN" "http://www.w3.org/TR/html4/frameset.dtd">
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
-<title><?php echo htmlspecialchars($title); ?></title>
+<title><?php echo htmlspecialchars($title, ENT_QUOTES, "UTF-8"); ?></title>
 <meta name="format-detection" content="telephone=no" />
 <meta name="apple-mobile-web-app-capable" content="yes" />
 <meta name="apple-mobile-web-app-status-bar-style" content="white" />
@@ -46,10 +67,10 @@ foreach($image_list as $image)
 <link rel="stylesheet" type="text/css" href="https://s3.amazonaws.com/welcome-screen/welcome_screen.css"/>
 <script type="text/javascript">
     var banner_image_path = '<?php echo addslashes($banner_image_path); ?>';
-    var forum_name = '<?php echo addslashes(htmlspecialchars($name)); ?>';
-    var app_api_key = '<?php echo addslashes($code); ?>';
-    var app_deep_link = '<?php echo addslashes(htmlspecialchars($deeplink)); ?>';
-    var banner_redirect_url = '<?php echo addslashes(htmlspecialchars($redirect_url))?>';
+    var forum_name = '<?php echo addslashes(htmlspecialchars($name, ENT_QUOTES, "UTF-8")); ?>';
+    var app_api_key = '<?php echo addslashes(htmlspecialchars($code, ENT_QUOTES, "UTF-8")); ?>';
+    var app_deep_link = '<?php echo addslashes(htmlspecialchars($deeplink, ENT_QUOTES, "UTF-8")); ?>';
+    var banner_redirect_url = '<?php echo addslashes(htmlspecialchars($redirect_url, ENT_QUOTES, "UTF-8"))?>';
     
     // ---- tapstream track ----
     var _tsq = _tsq || [];
@@ -58,7 +79,7 @@ foreach($image_list as $image)
     // "key" and "value" will appear as custom_parameters in the JSON that the app receives
     // from the getConversionData callback. Set it to something like "forum-id", "123456".
     _tsq.push(["addCustomParameter", "key", app_api_key]);
-    _tsq.push(["addCustomParameter", "deeplink", app_deep_link]);
+    _tsq.push(["addCustomParameter", "referer", app_deep_link]);
     // The logic below attaches a Tapstream session ID to your Tapstream campaign links.
     // This is critical for chaining the impression on the forum domain to the click
     // on your Tapstream custom domain.
@@ -106,7 +127,7 @@ foreach($image_list as $image)
             check_device();
             $("#close_icon img").click(function() {
                 localStorage.hide = true;
-                window.location.href='<?php echo addslashes(htmlspecialchars($redirect_url))?>';
+                window.location.href='<?php echo addslashes(htmlspecialchars($redirect_url, ENT_QUOTES, "UTF-8"))?>';
             });
         }, false);
 
@@ -114,11 +135,9 @@ foreach($image_list as $image)
         //$("body").height(($(window).height()*2- $(document).height() )+ 'px');
         $("#close_icon img").click(function() {
             localStorage.hide = true;
-            window.location.href='<?php echo addslashes(htmlspecialchars($redirect_url))?>';
+            window.location.href='<?php echo addslashes(htmlspecialchars($redirect_url, ENT_QUOTES, "UTF-8"))?>';
         });
-        /*
-        $("#button a").attr("href","https://tapatalk.com/m?id=23&referer=<?php echo urlencode($redirect_url)?>");
-        */
+        
         $("#button a").attr("href", 'http://tapstream.tapatalk.com/lzzq-1/?__tsid=$TSID&__tsid_override=1&referer='+encodeURIComponent(app_deep_link));
     })
 </script>

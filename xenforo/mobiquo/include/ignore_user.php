@@ -9,10 +9,10 @@ function ignore_user_func($xmlrpc_params)
     $bridge = Tapatalk_Bridge::getInstance();
     $visitor = XenForo_Visitor::getInstance();
 
-    if(empty($visitor['user_id']))
+    if(!isset($visitor['user_id']) || empty($visitor['user_id']))
         get_error('login_required');
-    $data = $bridge->_input->filterExternal(array(
-            'user_id' => XenForo_Input::STRING,
+        $data = $bridge->_input->filterExternal(array(
+            'user_id' => XenForo_Input::UINT,
             'mode' => XenForo_Input::UINT
     ), $params);
     

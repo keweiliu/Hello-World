@@ -11,20 +11,38 @@ if (isset($_GET['welcome']))
 }
 
 define('MOBIQUO_DEBUG', false);
-define('SCRIPT_ROOT', empty($_SERVER['SCRIPT_FILENAME']) ? '../' : dirname(dirname($_SERVER['SCRIPT_FILENAME'])).'/');
+define('SCRIPT_ROOT', (!isset($_SERVER['SCRIPT_FILENAME']) || empty($_SERVER['SCRIPT_FILENAME'])) ? '../' : dirname(dirname($_SERVER['SCRIPT_FILENAME'])).'/');
 
 if (DIRECTORY_SEPARATOR == '/')
     define('FORUM_ROOT', 'http://'.$_SERVER['HTTP_HOST'].dirname(dirname($_SERVER['SCRIPT_NAME'])).'/');
 else
     define('FORUM_ROOT', 'http://'.$_SERVER['HTTP_HOST'].str_replace('\\', '/', dirname(dirname($_SERVER['SCRIPT_NAME']))).'/');
 
-if($_SERVER['REQUEST_METHOD'] == 'GET')
+if($_REQUEST['method_name'] == 'set_api_key')
+{
+    if (!isset($_REQUEST['code']) || !isset($_REQUEST['key'])){
+        get_error('Parameter Error');
+    }
+    $_POST['method_name'] = 'set_api_key';
+}
+
+if ($_POST['method_name'] == 'sync_user'){
+    if (!isset($_POST['code']) || !isset($_POST['format'])){
+        get_error('Parameter Error');
+    }
+}
+
+if($_GET['method_name'] != 'set_api_key' && $_SERVER['REQUEST_METHOD'] == 'GET')
 {
     include 'web.php';
 }
 
+require_once './config/config.php';
 require_once './lib/xmlrpc.inc';
 require_once './lib/xmlrpcs.inc';
+require_once './lib/classConnection.php';
+require_once './lib/classTTSSO.php';
+require_once './lib/TTForum.php';
 
 require_once './server_define.php';
 require_once './mobiquo_common.php';
@@ -126,7 +144,7 @@ $rpcServer->setDebug(MOBIQUO_DEBUG ? 3 : 1);
 $rpcServer->compress_response = 'true';
 $rpcServer->response_charset_encoding = 'UTF-8';
 
-if(!empty($_POST['method_name'])){
+if(isset($_POST['method_name']) && !empty($_POST['method_name'])){
     $xml = new xmlrpcmsg($_POST['method_name']);
     $request = $xml->serialize();
     $response = $rpcServer->service($request);

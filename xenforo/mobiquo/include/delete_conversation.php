@@ -10,7 +10,7 @@ function delete_conversation_func($xmlrpc_params)
     $conversationModel = $bridge->getConversationModel();
     
     $input = $bridge->_input->filterExternal(array(
-        'conversationId'    => XenForo_Input::STRING,
+        'conversationId'    => XenForo_Input::UINT,
         'mode'              => XenForo_Input::UINT,
     ), $params);
     

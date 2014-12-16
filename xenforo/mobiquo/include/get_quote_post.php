@@ -21,7 +21,7 @@ function get_quote_post_func($xmlrpc_params)
 		$postids = array($data['post_id']);
 	foreach($postids as $postid)
 	{
-		if(empty($postid)) continue;
+		if(!tt_validate_numeric($postid) || empty($postid)) continue;
 		list($post, $thread, $forum) = $ftpHelper->assertPostValidAndViewable($postid,  array(
 			'join' => XenForo_Model_Post::FETCH_USER
 		));

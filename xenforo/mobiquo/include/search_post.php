@@ -94,7 +94,7 @@ function search_post_func($xmlrpc_params)
     if($results) {
         $threadIds = array();
         foreach($results['results'] as $result){
-            if(!empty($result['content']['thread_id']))
+            if(isset($result['content']['thread_id']) && !empty($result['content']['thread_id']))
                 $threadIds[]=$result['content']['thread_id'];
         }
         $threadFetchOptions = array(
@@ -153,7 +153,7 @@ function search_post_func($xmlrpc_params)
             );
 
             // this is not always available
-            if(!empty($thread['post_id'])){
+            if(isset($thread['post_id']) && !empty($thread['post_id'])){
                 $newTopic['post_id'] = new xmlrpcval($thread['post_id'], 'string');
             }
 

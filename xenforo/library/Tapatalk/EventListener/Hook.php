@@ -11,7 +11,7 @@ class Tapatalk_EventListener_Hook
             $app_ios_id = XenForo_Application::get('options')->tp_app_ios_id;
             $app_banner_message = XenForo_Application::get('options')->tp_app_banner_msg;
             $app_banner_message = preg_replace('/\r\n/','<br>',$app_banner_message);
-            $app_location_url = Tapatalk_EventListener_Hook::get_scheme_url();
+            $app_location_url = Tapatalk_EventListener_Hook::get_scheme_url($page_type);
             $is_mobile_skin = false;
             $app_forum_name = XenForo_Application::get('options')->boardTitle;
             $board_url = XenForo_Application::get('options')->boardUrl;
@@ -24,6 +24,7 @@ class Tapatalk_EventListener_Hook
             $tapatalk_dir_name = XenForo_Application::get('options')->tp_directory;
             if (empty($tapatalk_dir_name)) $tapatalk_dir_name = 'mobiquo';
             $forum_root = dirname(dirname(dirname(dirname(__FILE__))));
+            
             if (!function_exists('tt_getenv')){
                include($forum_root.'/'.$tapatalk_dir_name.'/smartbanner/head.inc.php');
             }
@@ -46,7 +47,7 @@ top:auto;
         }
     }
     
-    public static function get_scheme_url()
+    public static function get_scheme_url(&$location)
     {
         $baseUrl = XenForo_Application::get('options')->boardUrl.'?';
         $baseUrl = preg_replace('/https?:\/\//', 'tapatalk://', $baseUrl);
@@ -115,7 +116,7 @@ top:auto;
                         $departs = preg_split('/\./', $title);
                         if(isset($departs[1]) && !empty($departs[1]))
                         {
-                            $other_info .= $id_name.'='.$departs[1];
+                            $other_info .= $id_name.'='.intval($departs[1]);
                         }
                     }
                 }
@@ -123,7 +124,7 @@ top:auto;
                     if(!empty($other_info)){
                         $other_info .= '&';
                     }
-                    $other_info .= 'page='.$page.'&perpage='.($perPage?$perPage:20);
+                    $other_info .= 'page='.$page.'&perpage='.(intval($perPage) ? intval($perPage) : 20);
                 }
             }
         }

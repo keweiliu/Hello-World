@@ -67,7 +67,7 @@ class Tapatalk_Bridge extends XenForo_ControllerPublic_Abstract {
 		$this->_preDispatchType($this->_action);
 		$this->_preDispatch($this->_action);
 		
-		XenForo_CodeEvent::fire('controller_pre_dispatch', array($this, $this->_action));		
+//		XenForo_CodeEvent::fire('controller_pre_dispatch', array($this, $this->_action));
 		
 		$this->_dependencies->preRenderViewWithDefaultStyle();
 	}
@@ -76,11 +76,11 @@ class Tapatalk_Bridge extends XenForo_ControllerPublic_Abstract {
 	{
 	    global $request_method_name, $mobiquo_config;
 	    
-        if ($request_method_name == 'get_config' || $request_method_name == 'login' || $request_method_name == 'sign_in' || $request_method_name == 'register')
+        if ($request_method_name == 'get_config' || $request_method_name == 'login' || $request_method_name == 'sign_in' || $request_method_name == 'register' || $request_method_name == 'prefetch_account' || $request_method_name == 'forget_password' || $request_method_name == 'get_contact' || $request_method_name == 'set_api_key' || $request_method_name == 'sync_user')
         {
             $visitor = XenForo_Visitor::getInstance();
             $user_permissions = $visitor->getPermissions();
-            if (empty($user_permissions['general']['view']))
+            if (!isset($user_permissions['general']['view']) || empty($user_permissions['general']['view']))
             {
                 $user_permissions['general']['view'] = 1;
                 $mobiquo_config['guest_okay'] = 0;
@@ -103,7 +103,7 @@ class Tapatalk_Bridge extends XenForo_ControllerPublic_Abstract {
 			XenForo_Application::set('originBoardActive', 1);
 		
 		$register_setup = $options->registrationSetup;
-        if(empty($register_setup['enabled']))
+        if(!isset($register_setup['enabled']) || empty($register_setup['enabled']))
         {
             $mobiquo_config['sign_in'] = 0;
             $mobiquo_config['inappreg'] = 0;
@@ -123,7 +123,7 @@ class Tapatalk_Bridge extends XenForo_ControllerPublic_Abstract {
         }
         if (isset($options->tapatalk_reg_type))
         {
-            if ($options->tapatalk_reg_type == 2)
+            if ($options->tapatalk_reg_type == 1)
             {
                 $mobiquo_config['sign_in'] = 0;
                 $mobiquo_config['inappreg'] = 0;
@@ -131,14 +131,6 @@ class Tapatalk_Bridge extends XenForo_ControllerPublic_Abstract {
                 $mobiquo_config['sso_signin'] = 0;
                 $mobiquo_config['sso_register'] = 0;
                 $mobiquo_config['native_register'] = 0;
-            }
-            else if ($options->tapatalk_reg_type == 1)
-            {
-                $mobiquo_config['sign_in'] = 0;
-                $mobiquo_config['inappreg'] = 0;
-                
-                $mobiquo_config['sso_signin'] = 0;
-                $mobiquo_config['sso_register'] = 0;
             }
         }
         $this->mobiquo_configuration = $mobiquo_config;
@@ -166,8 +158,7 @@ class Tapatalk_Bridge extends XenForo_ControllerPublic_Abstract {
         $this->_request->setParam($key, $value);
     }
 	public function renderPostPreview($message, $length=0){	
-		$message = preg_replace('/\[quote.*?\[\/quote\]/is', '', $message);
-		$formatter = XenForo_BbCode_Formatter_Base::create('XenForo_BbCode_Formatter_Text');
+		$formatter = XenForo_BbCode_Formatter_Base::create('Tapatalk_BbCode_Formatter_ShortContent');
 		$parser = new XenForo_BbCode_Parser($formatter);
 		$rendered = $parser->render($message);
 		$rendered = str_replace(array("\r", "\n"), " ", $rendered);
@@ -204,7 +195,7 @@ class Tapatalk_Bridge extends XenForo_ControllerPublic_Abstract {
 		
 		$visitor = XenForo_Visitor::getInstance();
 	
-		if(empty($user['view_date']))
+		if(!isset($user['view_date']) || empty($user['view_date']))
 			$user['view_date'] = $user['last_activity'];
 			
 		if(
@@ -314,16 +305,17 @@ class Tapatalk_Bridge extends XenForo_ControllerPublic_Abstract {
 				{
 					$index = 1;
 					$result .= preg_replace_callback('/\[\*\]/s',
-					                                function ($matches) {
-                                                        static $index = 1;
-                                                        return '  '.$index++.'. ';
-                                                    },
-                                                    ltrim($content));
+                        array($this,'matchCount'),
+                    ltrim($content));
 				}
 			}
 		}
 		return $result;
 	}
+    private function matchCount($matches){
+        static $index = 1;
+        return '  '.$index++.'. ';
+    }
 
 	protected function _getSessionTimeout()
 	{
@@ -357,7 +349,15 @@ class Tapatalk_Bridge extends XenForo_ControllerPublic_Abstract {
 	{
 		return $this->getModelFromCache('XenForo_Model_User');
 	}
-	
+
+    /**
+     * @return XenForo_Model_UserGroup
+     */
+    public function getUserGroupModel()
+    {
+        return $this->getModelFromCache('XenForo_Model_UserGroup');
+    }
+
 	/**
 	 * @return XenForo_Model_Conversation
 	 */
@@ -549,6 +549,14 @@ class Tapatalk_Bridge extends XenForo_ControllerPublic_Abstract {
 		return $this->getModelFromCache('XenForo_Model_SpamCleaner');
 	}
 
+    /**
+     * @return XenForo_Model_SpamPrevention
+     */
+    public function getSpamPreventionModel()
+    {
+        return $this->getModelFromCache('XenForo_Model_SpamPrevention');
+    }
+    
 	/**
 	 * @return Tapatalk_Model_TapatalkUser
 	 */
@@ -565,6 +573,14 @@ class Tapatalk_Bridge extends XenForo_ControllerPublic_Abstract {
 		return $this->getModelFromCache('XenForo_Model_ModerationQueue');
 	}
 	
+    /**
+     * @return XenForo_Model_Warning
+     */
+    public function getWarningModel()
+    {
+        return $this->getModelFromCache('XenForo_Model_Warning');
+    }
+
 	/**
 	 * @return XenForo_Model_UserField
 	 */

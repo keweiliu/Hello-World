@@ -5,7 +5,7 @@ defined('IN_MOBIQUO') or exit;
 class TTConfig{
     public static function get_config(){
         return array(
-            'version' => 'xf10_1.1.4',
+            'version' => 'xf10_1.1.5',
             'api_level' => 3,
 
             'mark_forum' => 1,
